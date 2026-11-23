@@ -13,7 +13,7 @@ TanStack Start + Cloudflare Workers + [hagaki](../../) の編集・閲覧 UI。
 | ファイル | 内容 |
 |---|---|
 | `cloudflare.config.ts` | Worker の定義。公開してよい設定値 (`HAGAKI_*`, `CLIENT_ID` など) と secret の宣言 |
-| `vite.config.ts` | Vite + `@cloudflare/vite-plugin` (beta)。cf はこれでビルドする |
+| `vite.config.ts` | Vite + `@cloudflare/vite-plugin` (beta)。Vite+ (`vp`) で開発・ビルドする |
 | `app/lib/post-editor-images.ts` | 画像の挿入とプレビュー、保存時の画像収集 (`hagaki/pending-images`) |
 | `app/lib/post-editor-server.ts` | 保存用の server function。画像を検証して本文と一緒にコミットする |
 
@@ -54,7 +54,7 @@ pnpm run typecheck  # cf workers types && tsc
 
 ```sh
 cp .env.example .env   # CLOUDFLARE_ACCOUNT_ID / CLOUDFLARE_API_TOKEN を埋める
-pnpm exec cf build
+pnpm run build
 pnpm exec cf deploy --prebuilt --mode production
 ```
 
