@@ -28,14 +28,14 @@ content/
 配信 URL は `https://hagaki-content.<subdomain>.workers.dev`
 (`<subdomain>` はアカウントの workers.dev サブドメイン)。
 
-| パス | 内容 |
-|---|---|
-| `/article.json` | 記事一覧 (`hagaki.posts.list()`) |
-| `/slug-index.json` | slug → uuid |
-| `/article/<uuid>/index.mdx` | 記事本体 (`getBySlug()` / `getByUuid()`) |
-| `/article/<uuid>/info.json` | 記事メタデータ |
-| `/article/<uuid>/assets/<file>` | 記事の画像 |
-| `/categories.json` | カテゴリ一覧 |
+| パス                            | 内容                                     |
+| ------------------------------- | ---------------------------------------- |
+| `/article.json`                 | 記事一覧 (`hagaki.posts.list()`)         |
+| `/slug-index.json`              | slug → uuid                              |
+| `/article/<uuid>/index.mdx`     | 記事本体 (`getBySlug()` / `getByUuid()`) |
+| `/article/<uuid>/info.json`     | 記事メタデータ                           |
+| `/article/<uuid>/assets/<file>` | 記事の画像                               |
+| `/categories.json`              | カテゴリ一覧                             |
 
 ## ローカル開発
 

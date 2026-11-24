@@ -29,20 +29,20 @@ content/
 
 YAML。gray-matter（js-yaml）でシリアライズされる形（2スペースインデント）に合わせる。
 
-| フィールド | 型 | 必須 | 説明 |
-| --- | --- | --- | --- |
-| `title` | string | ✓ | 記事タイトル |
-| `slug` | string | ✓ | URL 用スラッグ。変更可 |
-| `uuid` | string (UUID) | ✓ | ディレクトリ名と一致。不変 |
-| `category` | string | ✓ | カテゴリの `slug` を参照 |
-| `description` | string | ✓ | 概要。空なら `''` |
-| `draft` | boolean | – | `true` で下書き。公開記事では省略（`false` は書かない） |
-| `editor` | string[] | – | 編集者として指定する認証ユーザー ID（better-auth の `session.user.id`）の配列。空なら省略 |
-| `thumbnail` | object | – | サムネイル。無い記事では省略 |
-| `thumbnail.imageId` | string (UUID) | ✓* | `assets/<imageId>.avif` を指す。パスは uuid + imageId から導出できるので書かない |
-| `thumbnail.blurhash64` | string | ✓* | blurhash を **base64 エンコード**した文字列（下記参照） |
-| `option` | object | – | カテゴリが宣言した追加フィールドの値。無い記事では省略 |
-| `option.<key>` | string \| number \| boolean | – | [カテゴリの `option.<key>`](#カテゴリcategoriesslugjson) に対応する値 |
+| フィールド             | 型                          | 必須 | 説明                                                                                      |
+| ---------------------- | --------------------------- | ---- | ----------------------------------------------------------------------------------------- |
+| `title`                | string                      | ✓    | 記事タイトル                                                                              |
+| `slug`                 | string                      | ✓    | URL 用スラッグ。変更可                                                                    |
+| `uuid`                 | string (UUID)               | ✓    | ディレクトリ名と一致。不変                                                                |
+| `category`             | string                      | ✓    | カテゴリの `slug` を参照                                                                  |
+| `description`          | string                      | ✓    | 概要。空なら `''`                                                                         |
+| `draft`                | boolean                     | –    | `true` で下書き。公開記事では省略（`false` は書かない）                                   |
+| `editor`               | string[]                    | –    | 編集者として指定する認証ユーザー ID（better-auth の `session.user.id`）の配列。空なら省略 |
+| `thumbnail`            | object                      | –    | サムネイル。無い記事では省略                                                              |
+| `thumbnail.imageId`    | string (UUID)               | ✓*   | `assets/<imageId>.avif` を指す。パスは uuid + imageId から導出できるので書かない          |
+| `thumbnail.blurhash64` | string                      | ✓*   | blurhash を **base64 エンコード**した文字列（下記参照）                                   |
+| `option`               | object                      | –    | カテゴリが宣言した追加フィールドの値。無い記事では省略                                    |
+| `option.<key>`         | string \| number \| boolean | –    | [カテゴリの `option.<key>`](#カテゴリcategoriesslugjson) に対応する値                     |
 
 \* `thumbnail` を書く場合は必須。
 
@@ -54,8 +54,8 @@ YAML。gray-matter（js-yaml）でシリアライズされる形（2スペース
 
 ```yaml
 option:
-  x: 1000
-  world: overworld
+    x: 1000
+    world: overworld
 ```
 
 型は宣言に従うスカラー（string / number / boolean）のみ。`type: "enum"` の
@@ -84,8 +84,8 @@ hagaki は ID の中身を解釈しない（例では OIDC の `sub` が UUID �
 
 ```yaml
 editor:
-  - 069a79f4-44e9-4726-a5be-fca90e38aaf5
-  - 853c80ef-3c37-49fd-aa49-938b674adae6
+    - 069a79f4-44e9-4726-a5be-fca90e38aaf5
+    - 853c80ef-3c37-49fd-aa49-938b674adae6
 ```
 
 - 読み込み時（`parsePostMarkdown` / `parseEditorList`）は、各要素を trim し、
@@ -120,10 +120,10 @@ committer 名が `"<表示名> (<userId>)"` になるため、コミットから
 `modified` はそれを補うためだけのフィールドで、別システムから移行した記事の
 **git 以前の編集履歴**を保存する場所。移行記事以外では省略する。
 
-| フィールド | 型 | 説明 |
-| --- | --- | --- |
-| `modified[].date` | string (ISO 8601 UTC) | 例: `2024-06-19T15:00:00.000Z` |
-| `modified[].userId` | string | 編集したユーザーの認証ユーザー ID（git 履歴の `userId` と同じ ID 空間） |
+| フィールド          | 型                    | 説明                                                                    |
+| ------------------- | --------------------- | ----------------------------------------------------------------------- |
+| `modified[].date`   | string (ISO 8601 UTC) | 例: `2024-06-19T15:00:00.000Z`                                          |
+| `modified[].userId` | string                | 編集したユーザーの認証ユーザー ID（git 履歴の `userId` と同じ ID 空間） |
 
 - 昇順で並べる（先頭 = 元システムでの作成、末尾 = 移行前の最後の編集）。
 - git 移行後の編集では**追記しない**。保存はコミットとして記録される。
@@ -143,13 +143,13 @@ uuid: 0e95538c-f931-4616-8b39-88cb608c90b4
 category: general
 description: hagaki のコンテンツフォーマットと Markdown 記法のサンプル記事
 thumbnail:
-  imageId: 98e879e4-d625-4ca7-8e20-4df80ab0c285
-  blurhash64: VUhLMGc4JCV4XlZzfld4dFJpdFIlZ05iTXtWQHNTb2ZWQHNv
+    imageId: 98e879e4-d625-4ca7-8e20-4df80ab0c285
+    blurhash64: VUhLMGc4JCV4XlZzfld4dFJpdFIlZ05iTXtWQHNTb2ZWQHNv
 modified:
-  - date: 2024-06-19T15:00:00.000Z
-    userId: f8b761ec-4a54-48eb-a040-c5604042bcc9
-  - date: 2024-06-20T12:30:00.000Z
-    userId: 389b1a68-f647-4dd0-a421-61b6c22fdebe
+    - date: 2024-06-19T15:00:00.000Z
+      userId: f8b761ec-4a54-48eb-a040-c5604042bcc9
+    - date: 2024-06-20T12:30:00.000Z
+      userId: 389b1a68-f647-4dd0-a421-61b6c22fdebe
 ---
 ```
 
@@ -172,25 +172,25 @@ MDX（Markdown + `<Image />` コンポーネントのみ）。hagaki 自身は�
 
 ## カテゴリ（`categories/<slug>.json`）
 
-| フィールド | 型 | 説明 |
-| --- | --- | --- |
-| `title` | string | 表示名 |
-| `slug` | string | ファイル名と一致 |
-| `body` | string | カテゴリの説明文 |
-| `option` | object? | 記事が持つ追加 frontmatter フィールドの宣言。任意 |
+| フィールド | 型      | 説明                                              |
+| ---------- | ------- | ------------------------------------------------- |
+| `title`    | string  | 表示名                                            |
+| `slug`     | string  | ファイル名と一致                                  |
+| `body`     | string  | カテゴリの説明文                                  |
+| `option`   | object? | 記事が持つ追加 frontmatter フィールドの宣言。任意 |
 
 `option` は「このカテゴリの記事が何を追加で持つか」をキーごとに宣言する。
 値の意味は hagaki は関知せず、エディタが入力欄を描くのに必要な情報だけを持つ。
 
-| フィールド | 型 | 説明 |
-| --- | --- | --- |
-| `option.<key>.type` | `"string"` \| `"integer"` \| `"number"` \| `"boolean"` \| `"enum"` | 値の種類 |
-| `option.<key>.label` | string? | 入力欄のラベル。省略時はキー名 |
-| `option.<key>.description` | string? | 入力欄に添える説明 |
-| `option.<key>.placeholder` | string? | 未入力時のプレースホルダ |
-| `option.<key>.required` | boolean? | 記事が必ず持つ必要があるか |
-| `option.<key>.enum` | `{ id, display }[]`? | `type: "enum"` の選択肢。エディタに出す順で並べる |
-| `option.<key>.default` | string \| number \| boolean? | 新規記事の入力欄の初期値。`type: "enum"` なら選択肢の `id` |
+| フィールド                 | 型                                                                 | 説明                                                       |
+| -------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------- |
+| `option.<key>.type`        | `"string"` \| `"integer"` \| `"number"` \| `"boolean"` \| `"enum"` | 値の種類                                                   |
+| `option.<key>.label`       | string?                                                            | 入力欄のラベル。省略時はキー名                             |
+| `option.<key>.description` | string?                                                            | 入力欄に添える説明                                         |
+| `option.<key>.placeholder` | string?                                                            | 未入力時のプレースホルダ                                   |
+| `option.<key>.required`    | boolean?                                                           | 記事が必ず持つ必要があるか                                 |
+| `option.<key>.enum`        | `{ id, display }[]`?                                               | `type: "enum"` の選択肢。エディタに出す順で並べる          |
+| `option.<key>.default`     | string \| number \| boolean?                                       | 新規記事の入力欄の初期値。`type: "enum"` なら選択肢の `id` |
 
 キーは記事の frontmatter の [`option.<key>`](#カテゴリ固有の値option) に
 保存されるキーそのもの。
@@ -261,8 +261,17 @@ git コミット履歴のマージは**ここで焼き込む**ので、消費側
     "created": "2024-06-19T15:00:00.000Z",
     "updated": "2026-08-01T00:00:00.000Z",
     "history": [
-        { "date": "2024-06-19T15:00:00.000Z", "userId": "f8b761ec-…", "source": "imported" },
-        { "date": "2026-08-01T00:00:00.000Z", "userId": "389b1a68-…", "source": "git", "commit": "<sha>" }
+        {
+            "date": "2024-06-19T15:00:00.000Z",
+            "userId": "f8b761ec-…",
+            "source": "imported"
+        },
+        {
+            "date": "2026-08-01T00:00:00.000Z",
+            "userId": "389b1a68-…",
+            "source": "git",
+            "commit": "<sha>"
+        }
     ]
 }
 ```

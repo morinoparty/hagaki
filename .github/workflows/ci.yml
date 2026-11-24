@@ -1,27 +1,27 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
-  pull_request:
+    push:
+        branches: [main]
+    pull_request:
 
 permissions:
-  contents: read
+    contents: read
 
 jobs:
-  check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
+    check:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
 
-      # pnpm (package.json の packageManager) と Node (.node-version) をまとめて入れる。
-      # pnpm/action-setup の self-installer (npm 経由) を使わないので速い
-      - uses: pnpm/setup@v3
-        with:
-          cache: true # pnpm store を lockfile ごとにキャッシュ
-          install: false # install は下で --frozen-lockfile 付きで明示的に行う
+            # pnpm (package.json の packageManager) と Node (.node-version) をまとめて入れる。
+            # pnpm/action-setup の self-installer (npm 経由) を使わないので速い
+            - uses: pnpm/setup@v3
+              with:
+                  cache: true # pnpm store を lockfile ごとにキャッシュ
+                  install: false # install は下で --frozen-lockfile 付きで明示的に行う
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm run typecheck
-      - run: pnpm run check:ci
-      - run: pnpm run build
+            - run: pnpm install --frozen-lockfile
+            - run: pnpm run typecheck
+            - run: pnpm run check:ci
+            - run: pnpm run build

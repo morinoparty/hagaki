@@ -17,9 +17,11 @@
 - GitHub Release の作成 (= npm への公開) は、ユーザーに指示されない限り行わないこと
 
 ## Repository
+
 - [hagaki](https://github.com/morinoparty/hagaki)
 
 ## コミットメッセージ
+
 - コミットメッセージは英語で書き、以下のような形式で書く。
 
 ```
@@ -27,6 +29,7 @@ emoji コミットの概要
 ```
 
 例:
+
 ```
 🎨 Add new method to get fish
 ```
