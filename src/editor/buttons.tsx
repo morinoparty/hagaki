@@ -118,59 +118,76 @@ interface FormatButtonConfig {
     defaultTitle: string;
 }
 
-function makeFormatButton(cfg: FormatButtonConfig) {
-    return function FormatButton(props: HagakiEditorToolbarButtonProps) {
-        const [currentFormat, iconFor, readOnly] = useCellValues(
-            currentFormat$,
-            iconComponentFor$,
-            readOnly$,
-        );
-        const applyFormat = usePublisher(applyFormat$);
-        const active = (currentFormat & cfg.flag) !== 0;
-        return (
-            <ToolbarButton
-                className={props.className}
-                disabled={readOnly}
-                data-state={active ? "on" : "off"}
-                title={props.title ?? cfg.defaultTitle}
-                onClick={() => applyFormat(cfg.name)}
-            >
-                {props.children ?? icon(iconFor, cfg.iconName)}
-            </ToolbarButton>
-        );
-    };
+function FormatButton({
+    cfg,
+    ...props
+}: HagakiEditorToolbarButtonProps & { cfg: FormatButtonConfig }) {
+    const [currentFormat, iconFor, readOnly] = useCellValues(
+        currentFormat$,
+        iconComponentFor$,
+        readOnly$,
+    );
+    const applyFormat = usePublisher(applyFormat$);
+    const active = (currentFormat & cfg.flag) !== 0;
+    return (
+        <ToolbarButton
+            className={props.className}
+            disabled={readOnly}
+            data-state={active ? "on" : "off"}
+            title={props.title ?? cfg.defaultTitle}
+            onClick={() => applyFormat(cfg.name)}
+        >
+            {props.children ?? icon(iconFor, cfg.iconName)}
+        </ToolbarButton>
+    );
 }
 
-export const Bold = makeFormatButton({
+const boldConfig: FormatButtonConfig = {
     flag: IS_BOLD,
     name: "bold",
     iconName: "format_bold",
     defaultTitle: "Bold",
-});
-export const Italic = makeFormatButton({
+};
+const italicConfig: FormatButtonConfig = {
     flag: IS_ITALIC,
     name: "italic",
     iconName: "format_italic",
     defaultTitle: "Italic",
-});
-export const Underline = makeFormatButton({
+};
+const underlineConfig: FormatButtonConfig = {
     flag: IS_UNDERLINE,
     name: "underline",
     iconName: "format_underlined",
     defaultTitle: "Underline",
-});
-export const Strikethrough = makeFormatButton({
+};
+const strikethroughConfig: FormatButtonConfig = {
     flag: IS_STRIKETHROUGH,
     name: "strikethrough",
     iconName: "strikeThrough",
     defaultTitle: "Strikethrough",
-});
-export const InlineCode = makeFormatButton({
+};
+const inlineCodeConfig: FormatButtonConfig = {
     flag: IS_CODE,
     name: "code",
     iconName: "code",
     defaultTitle: "Inline code",
-});
+};
+
+export function Bold(props: HagakiEditorToolbarButtonProps) {
+    return <FormatButton {...props} cfg={boldConfig} />;
+}
+export function Italic(props: HagakiEditorToolbarButtonProps) {
+    return <FormatButton {...props} cfg={italicConfig} />;
+}
+export function Underline(props: HagakiEditorToolbarButtonProps) {
+    return <FormatButton {...props} cfg={underlineConfig} />;
+}
+export function Strikethrough(props: HagakiEditorToolbarButtonProps) {
+    return <FormatButton {...props} cfg={strikethroughConfig} />;
+}
+export function InlineCode(props: HagakiEditorToolbarButtonProps) {
+    return <FormatButton {...props} cfg={inlineCodeConfig} />;
+}
 
 // ─── List buttons ────────────────────────────────────────────────────────
 
@@ -180,45 +197,56 @@ interface ListButtonConfig {
     defaultTitle: string;
 }
 
-function makeListButton(cfg: ListButtonConfig) {
-    return function ListButton(props: HagakiEditorToolbarButtonProps) {
-        const [currentListType, iconFor, inTable, readOnly] = useCellValues(
-            currentListType$,
-            iconComponentFor$,
-            editorInTable$,
-            readOnly$,
-        );
-        const applyListType = usePublisher(applyListType$);
-        const active = currentListType === cfg.value;
-        return (
-            <ToolbarButton
-                className={props.className}
-                disabled={readOnly || inTable}
-                data-state={active ? "on" : "off"}
-                title={props.title ?? cfg.defaultTitle}
-                onClick={() => applyListType(active ? "" : cfg.value)}
-            >
-                {props.children ?? icon(iconFor, cfg.iconName)}
-            </ToolbarButton>
-        );
-    };
+function ListButton({
+    cfg,
+    ...props
+}: HagakiEditorToolbarButtonProps & { cfg: ListButtonConfig }) {
+    const [currentListType, iconFor, inTable, readOnly] = useCellValues(
+        currentListType$,
+        iconComponentFor$,
+        editorInTable$,
+        readOnly$,
+    );
+    const applyListType = usePublisher(applyListType$);
+    const active = currentListType === cfg.value;
+    return (
+        <ToolbarButton
+            className={props.className}
+            disabled={readOnly || inTable}
+            data-state={active ? "on" : "off"}
+            title={props.title ?? cfg.defaultTitle}
+            onClick={() => applyListType(active ? "" : cfg.value)}
+        >
+            {props.children ?? icon(iconFor, cfg.iconName)}
+        </ToolbarButton>
+    );
 }
 
-export const BulletList = makeListButton({
+const bulletListConfig: ListButtonConfig = {
     value: "bullet",
     iconName: "format_list_bulleted",
     defaultTitle: "Bulleted list",
-});
-export const NumberedList = makeListButton({
+};
+const numberedListConfig: ListButtonConfig = {
     value: "number",
     iconName: "format_list_numbered",
     defaultTitle: "Numbered list",
-});
-export const CheckList = makeListButton({
+};
+const checkListConfig: ListButtonConfig = {
     value: "check",
     iconName: "format_list_checked",
-    defaultTitle: "Check list",
-});
+    defaultTitle: "Checklist",
+};
+
+export function BulletList(props: HagakiEditorToolbarButtonProps) {
+    return <ListButton {...props} cfg={bulletListConfig} />;
+}
+export function NumberedList(props: HagakiEditorToolbarButtonProps) {
+    return <ListButton {...props} cfg={numberedListConfig} />;
+}
+export function CheckList(props: HagakiEditorToolbarButtonProps) {
+    return <ListButton {...props} cfg={checkListConfig} />;
+}
 
 // ─── Image controls (composable replacement for InsertImage) ─────────────
 
