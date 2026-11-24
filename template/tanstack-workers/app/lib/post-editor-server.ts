@@ -1,4 +1,4 @@
-import type { WikiPostDetail } from "@morinoparty/hagaki";
+import { toUrlSlug, type WikiPostDetail } from "@morinoparty/hagaki";
 import { validateAvifUpload } from "@morinoparty/hagaki/image";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSession } from "./auth-server";
@@ -43,18 +43,35 @@ export const getEditorPostFn = createServerFn({ method: "GET" })
         await requireSession();
         const { env } = await import("cloudflare:workers");
         const client = await getHagakiClient();
-        const existing = await client.posts.getBySlug(data.slug);
         // A non-uuid `?uuid=` search param must not leak into repo paths —
         // drop it and let emptyPost mint a fresh one instead.
         const knownUuid =
             data.knownUuid && UUID_REGEX.test(data.knownUuid)
                 ? data.knownUuid
                 : undefined;
-        const post = existing ?? {
-            ...emptyPost(data.slug, knownUuid),
-            title: data.seed?.title ?? "",
-            category: data.seed?.category ?? "",
-        };
+        // The CDN is only used to map slug → uuid and for the generated
+        // `created` / `updated`. It lags behind commits (content deploy) and
+        // never serves drafts, so the body and frontmatter come from the repo
+        // — otherwise a reload right after a save would load a stale body and
+        // the next save would overwrite the newer commit.
+        const cdn = knownUuid
+            ? await client.posts.getByUuid(knownUuid)
+            : await client.posts.getBySlug(data.slug);
+        const uuid = knownUuid ?? cdn?.uuid;
+        const fromRepo = uuid ? await client.posts.getFromRepo(uuid) : null;
+        // getFromRepo leaves `created` / `updated` null (they live in the
+        // generated info.json), so fill them from the CDN copy if any.
+        const post: WikiPostDetail = fromRepo
+            ? {
+                  ...fromRepo,
+                  created: cdn?.created ?? fromRepo.created,
+                  updated: cdn?.updated ?? fromRepo.updated,
+              }
+            : {
+                  ...emptyPost(data.slug, knownUuid),
+                  title: data.seed?.title ?? "",
+                  category: data.seed?.category ?? "",
+              };
         return {
             post,
             categories: await client.categories.list(),
@@ -121,8 +138,24 @@ export const commitPostFn = createServerFn({ method: "POST" })
         const deletePaths = data.deletePaths ?? [];
         for (const path of deletePaths) assertOwned(path, "delete");
 
-        const { default: matter } = await import("gray-matter");
         const client = await getHagakiClient();
+        // generate fails the content build on a duplicate slug, so refuse a
+        // save that would take a slug another published post already owns.
+        // Drafts are skipped because generate leaves them out of the index.
+        // This is a cheap CDN check only: a post committed but not deployed
+        // yet is not in slug-index.json, and that window stays guarded by
+        // generate's duplicate-slug failure.
+        if (!data.post.draft) {
+            const slug = toUrlSlug(data.post.slug);
+            const owner = await client.posts.getBySlug(slug);
+            if (owner && owner.uuid !== data.post.uuid) {
+                throw new Error(
+                    `commitPostFn: slug "${slug}" is already used by ${owner.uuid}`,
+                );
+            }
+        }
+
+        const { default: matter } = await import("gray-matter");
         const postPath = `${articleDir}/index.mdx`;
         const markdown = matter.stringify(
             data.post.body || "",

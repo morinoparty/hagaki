@@ -5,7 +5,8 @@
  *     output dimensions, and emit a blurhash so the editor can render a
  *     placeholder immediately.
  *   - `encodeAnalyzedImage` (browser-only): slow stage — AVIF-encode the
- *     analyzed bitmap via WASM in the background.
+ *     analyzed bitmap via WASM. Runs on the main thread (it blocks the UI
+ *     while encoding), so show the placeholder before starting it.
  *   - `processImage` (browser-only): both stages chained for one-shot use.
  *   - `validateAvifUpload` (isomorphic): cheap byte check before committing.
  *

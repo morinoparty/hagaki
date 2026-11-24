@@ -1,4 +1,5 @@
 import matter from "gray-matter";
+import { safeDecode, toUrlSlug } from "./slug.js";
 import type {
     GetAllPostsOptions,
     ImportedEdit,
@@ -195,7 +196,10 @@ export function parsePostMarkdown(
     return {
         title: (data.title as string | undefined) ?? "",
         slug: (data.slug as string | undefined) ?? "",
-        uuid: (data.uuid as string | undefined) ?? uuid,
+        // The directory the file was read from is the uuid that counts (it is
+        // what `hagaki generate` writes to the manifests); a differing
+        // frontmatter value is ignored, so a save rewrites it to match.
+        uuid,
         description: (data.description as string | undefined) ?? "",
         category: (data.category as string | undefined) ?? "",
         thumbnail: parseThumbnail(data.thumbnail),
@@ -238,21 +242,31 @@ export async function getPostByUuid(
 /**
  * Resolve a post by its human-facing slug via the generated
  * `slug-index.json` (O(1)), falling back to a manifest scan when the index
- * is missing. Returns `null` if no post has that slug.
+ * is missing. Accepts the normalized slug (as written by `hagaki generate`),
+ * the raw frontmatter slug, or a legacy double-encoded slug that earlier
+ * releases generated for frontmatter slugs already stored percent-encoded
+ * (e.g. `%25e3%2581%2582` for `%E3%81%82`), so old permalinks keep resolving.
+ * Returns `null` if no post has that slug.
  */
 export async function getPostBySlug(
     deps: ContentFetcherDeps,
     slug: string,
 ): Promise<WikiPostDetail | null> {
+    const candidates = slugLookupKeys(slug);
     const url = joinUrl(deps.config.cdnBaseUrl, slugIndexPath(deps.config));
     const res = await deps.fetchImpl(url);
     if (res.ok) {
         const index = (await res.json()) as Record<string, string>;
-        const uuid = index[slug];
+        // `Object.hasOwn` keeps names like "constructor" from hitting the
+        // prototype.
+        const key = candidates.find((c) => Object.hasOwn(index, c));
+        const uuid = key === undefined ? undefined : index[key];
         return uuid ? getPostByUuid(deps, uuid) : null;
     }
     const posts = await listPosts(deps);
-    const match = posts.find((p) => p.slug === slug);
+    const match = candidates
+        .map((c) => posts.find((p) => p.slug === c))
+        .find((p) => p !== undefined);
     if (!match) return null;
     return getPostByUuid(deps, match.uuid);
 }
@@ -266,4 +280,15 @@ export async function listCategories(
     const categories = (await res.json()) as WikiCategory[];
     categories.sort((a, b) => a.slug.localeCompare(b.slug));
     return categories;
+}
+
+/**
+ * Keys to try for a slug, in order: the slug as given (callers linking with
+ * manifest slugs already pass the normalized form), the key `generate` writes
+ * for a raw frontmatter slug, and the current key for a legacy slug that
+ * older `generate` encoded twice. Decoding the legacy key once yields the
+ * stored frontmatter slug, which `toUrlSlug` normalizes to today's key.
+ */
+function slugLookupKeys(slug: string): string[] {
+    return [...new Set([slug, toUrlSlug(slug), toUrlSlug(safeDecode(slug))])];
 }

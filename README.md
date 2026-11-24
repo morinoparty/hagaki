@@ -20,8 +20,9 @@ GitHub Release を publish すると、そのタグ (`v0.2.0` など) の版を 
 (`.github/workflows/publish.yml`)。公開には npm の trusted publishing (OIDC) を使うので、
 npm のトークンは secret に置いていない。
 
-`.npmrc` の設定やトークンは不要。以前の版 (0.4.0 まで) は GitHub Packages にあり、
-`@morinoparty:registry=https://npm.pkg.github.com` を設定している場合はそちらを読むので、
+`.npmrc` の設定やトークンは不要。npm にあるのは 0.4.0 以降で、それより前の版は
+GitHub Packages にある。`@morinoparty:registry=https://npm.pkg.github.com` を
+設定している場合は GitHub Packages を読むので、
 その行を消してから入れる。
 
 ```sh
@@ -79,7 +80,7 @@ console.log(result.commitSha, result.commitUrl);
 ```tsx
 "use client";
 import { HagakiEditor } from "@morinoparty/hagaki/editor";
-import { getPending, startPending } from "@morinoparty/hagaki/pending-images";
+import { startPending } from "@morinoparty/hagaki/pending-images";
 import "@mdxeditor/editor/style.css";
 
 export function MyEditor(props: {
@@ -95,7 +96,7 @@ export function MyEditor(props: {
         const entry = await startPending({ file });
         return { id: entry.id, blurhash: entry.blurhash, width: entry.width, height: entry.height, alt: "" };
       }}
-      imagePreviewUrlFor={(id) => getPending(id)?.previewUrl ?? props.committedUrl(id)}
+      imagePreviewUrlFor={(id) => props.committedUrl(id)}
     >
       <HagakiEditor.Toolbar>
         <HagakiEditor.UndoRedo />
@@ -121,8 +122,8 @@ MDXEditor はクライアント専用なので、`lazy(() => import(...))` な�
 | `ready` | `blob` と `previewUrl` (`blob:` の object URL) がある。コミットできる |
 | `error` | エンコードに失敗した。`error` に原因が入る |
 
-1. **挿入**: `startPending({ file })` は blurhash が出た時点で resolve するので、すぐに `<Image imageId="…" />` を挿入できる。エンコードは裏で続く。
-2. **プレビュー**: `imagePreviewUrlFor` で `getPending(id)?.previewUrl` を返し、なければコミット済みの URL を返す。
+1. **挿入**: `startPending({ file })` は blurhash が出た時点で resolve するので、すぐに `<Image imageId="…" />` を挿入できる。エンコードはその後メインスレッドで行われ、終わるまで UI は止まる。挿入の直後に 1 タスク譲るので、プレースホルダは多くの場合その前に描画される (保証はしない)。
+2. **プレビュー**: 保留中の画像は、エディタが pending エントリの `previewUrl` で自動的に表示する。`imagePreviewUrlFor` にはコミット済み画像の URL を返す関数を渡す (省略するとコミット済み画像は blurhash のプレースホルダだけになる)。
 3. **保存ボタンの制御**: `subscribe(fn)` と `hasActive()` / `hasErrors()` を使う。エディタの `onChange` で `sweepOrphanedErrors(body)` を呼ぶと、本文から消えた失敗画像の分のエラーが残らない。
 4. **保存 (ブラウザ側)**:
 
@@ -131,7 +132,6 @@ MDXEditor はクライアント専用なので、`lazy(() => import(...))` な�
      collectPendingImages,
      findUncommittedImageIds,
      PendingImageError,
-     removePending,
    } from "@morinoparty/hagaki/pending-images";
 
    // 本文が参照していて、まだコミットされていない画像 (サムネイル等の id は自分で足す)
@@ -148,12 +148,13 @@ MDXEditor はクライアント専用なので、`lazy(() => import(...))` な�
    }
    await savePost(form); // Server Action / API など
 
-   // 成功後: 先に committedBody を更新して表示をコミット済み URL へ切り替え、
-   // それからコミットに入れた分だけ破棄する (object URL も revoke される)。
-   // clearAll() だと、保存中に挿入された画像まで消えてしまう。
+   // 成功後: committedBody を更新して、次の保存で同じ画像を再送しないようにする。
+   // コミットした画像の URL は content の deploy が終わるまで 404 になるので、
+   // pending エントリは消さずに previewUrl で表示し続ける。
    setCommittedBody(body);
-   for (const { imageId } of images) removePending(imageId);
    ```
+
+   エディタを閉じるとき (unmount 時) に `clearAll()` を呼んで、Blob と object URL を解放する。
 
 5. **保存 (サーバ側)**: 受け取ったバイト列を `validateAvifUpload` (`hagaki/image`) で確かめ、本文と一緒に `posts.save` の `files` (または `commits.commitFiles`) に渡す。`CommitFile.content` は `Uint8Array` / `ArrayBuffer` / `Blob` (`FormData` の `File` もそのまま渡せる) / 文字列を受け付ける。JSON で base64 を受け取った場合は `encoding: "base64"` を付ける。
 
@@ -283,6 +284,12 @@ hagaki generate [--content-dir ./content]
 `categories.json` を生成する。編集履歴のマージに git を使うので、
 Actions では `fetch-depth: 0` で checkout する。
 
+`toUrlSlug` はパーセントエンコード済みの入力を一度デコードしてから正規化する。
+そのため、frontmatter の `slug` がエンコード済み (`%E3%81%82` など) の記事は、
+以前の `generate` では二重にエンコードされたキー (`%25e3%2581%2582`) になっていたが、
+今後は `%E3%81%82` になり、記事の URL が変わる。`posts.getBySlug` は古いキーも
+受け付けるので、古いリンクは引き続き同じ記事を返す。
+
 ## 配信 worker (`hagaki/content-worker`)
 
 Workers Static Assets の前段に置く Hono アプリ。下書きの遮断だけを担当し、
@@ -369,7 +376,8 @@ pnpm run build      # tsdown → dist/
 ```
 
 Node.js 26.12 以上 (`.node-version`) と pnpm 12 (`packageManager`) を使う。
-main に push すると、CI が typecheck と biome check を通したうえで `dist` ブランチを更新する。
+main への push と PR では、CI (`.github/workflows/ci.yml`) が typecheck、biome check (`check:ci`)、build を実行する。
+npm への公開は、GitHub Release を publish したときだけ `.github/workflows/publish.yml` が行う。
 
 ## License
 

@@ -58,8 +58,9 @@ type ToolbarButton = ComponentType<any>;
  *   directly, then hands the file off to `onImageUpload`.
  * - `InsertImage.ComponentButton` — file picker for the MDX image flow:
  *   hands the file to `onInsertImage` and inserts an
- *   `<Image imageId="…" />` component (requires `imagePreviewUrlFor` on the
- *   editor for inline rendering).
+ *   `<Image imageId="…" />` component (set `imagePreviewUrlFor` on the editor
+ *   so committed images resolve to a display URL; pending images preview
+ *   without it).
  */
 type InsertImageComponent = ToolbarButton & {
     Trigger: ComponentType<HagakiEditorToolbarButtonProps>;

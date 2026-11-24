@@ -96,10 +96,13 @@ export interface StartPendingInput {
  * Resolves as soon as `analyzeImage` finishes (= blurhash and dimensions are
  * known) with a new `"encoding"` entry, so the editor can insert the
  * `<Image />` component and show the placeholder right away. The AVIF encode
- * continues in the background; the entry then moves to `"ready"` (with
- * `blob` + `previewUrl`) or `"error"`, notifying subscribers.
+ * starts after a macrotask yield, so the caller can insert the placeholder
+ * first (the browser usually paints it then, but a single task yield does
+ * not guarantee a frame). The encode itself runs on the main
+ * thread and blocks the UI while it runs; the entry then moves to `"ready"`
+ * (with `blob` + `previewUrl`) or `"error"`, notifying subscribers.
  *
- * `entry.done` tracks the background encode; an internal `.catch(() => {})`
+ * `entry.done` tracks the deferred encode; an internal `.catch(() => {})`
  * keeps its rejection observed when nobody awaits it.
  */
 export async function startPending(
@@ -115,11 +118,15 @@ export async function startPending(
         width: analyzed.width,
         height: analyzed.height,
         status: "encoding",
-        // Assigned right below — the background chain needs `entry` in scope.
+        // Assigned right below — the encode chain needs `entry` in scope.
         done: undefined as unknown as Promise<Blob>,
     };
     entry.done = (async () => {
         try {
+            // Let the caller insert the placeholder before the synchronous
+            // WASM encode blocks the main thread. This does not wait for a
+            // frame, so a paint in between is likely but not guaranteed.
+            await new Promise<void>((resolve) => setTimeout(resolve, 0));
             const avif = await encodeAnalyzedImage(
                 analyzed,
                 input.processOptions,
@@ -159,7 +166,9 @@ export function listPending(): PendingEntry[] {
 
 /**
  * Drop one entry and revoke its preview URL — after the image was removed
- * from the editor, or once a commit containing it succeeded.
+ * from the editor, or when the editor unmounts. Committed images can keep
+ * their entry until then: the CDN usually serves them only after the content
+ * deploy, so the `blob:` preview is what keeps them visible.
  */
 export function removePending(id: string): void {
     const entry = store.get(id);
@@ -243,8 +252,9 @@ export function findUncommittedImageIds(
  * Throws {@link PendingImageError} when any id failed to encode or has no
  * entry in the store (the bytes only live in this tab's memory, so an image
  * inserted before a reload cannot be recovered — the user has to re-insert
- * it). Entries stay in the store; call {@link removePending} for each id once
- * the commit succeeded.
+ * it). Entries stay in the store; keep them for the preview after the commit
+ * and release them with {@link clearAll} / {@link removePending} when the
+ * editor unmounts.
  */
 export async function collectPendingImages(
     ids: Iterable<string>,

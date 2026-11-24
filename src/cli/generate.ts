@@ -125,6 +125,13 @@ async function generateArticleLists(contentDir: string) {
         const { data } = matter(raw);
         if (!data.uuid) {
             console.warn(`uuid missing in ${entry.name}/index.mdx`);
+        } else if (String(data.uuid) !== entry.name) {
+            // The worker and getPostByUuid serve `article/<dir>/`, so the
+            // directory name is the uuid that counts; the frontmatter value
+            // is only reported, never trusted for the manifests.
+            console.warn(
+                `uuid mismatch in ${entry.name}/index.mdx: frontmatter uuid "${data.uuid}" differs from its directory name; using the directory name`,
+            );
         }
         if (!data.slug) {
             console.warn(`slug missing in ${entry.name}/index.mdx`);
@@ -142,7 +149,9 @@ async function generateArticleLists(contentDir: string) {
         const info: ArticleInfo = {
             title: data.title ?? "",
             slug: toUrlSlug(data.slug ?? entry.name),
-            uuid: data.uuid ?? entry.name,
+            // Always the directory name, so slug-index and article.json point
+            // at the directory the worker actually serves.
+            uuid: entry.name,
             category: data.category ?? "",
             description: data.description ?? "",
             thumbnail: parseThumbnail(data.thumbnail),
@@ -189,8 +198,16 @@ async function generateCategoriesList(contentDir: string) {
     console.info(`categories.json: ${categories.length} categories`);
 }
 
-/** Generate every manifest for a hagaki content directory. */
+/**
+ * Generate every manifest for a hagaki content directory. Throws when
+ * `contentDir` is not an existing directory, so a mistyped `--content-dir`
+ * fails instead of producing empty manifests.
+ */
 export async function generateManifests(contentDir: string) {
+    const stat = await fs.stat(contentDir).catch(() => null);
+    if (!stat?.isDirectory()) {
+        throw new Error(`content directory not found: ${contentDir}`);
+    }
     await generateArticleLists(contentDir);
     await generateCategoriesList(contentDir);
 }

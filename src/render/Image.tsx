@@ -78,20 +78,6 @@ export interface HagakiImageProps {
     borderRadius?: string;
 }
 
-/**
- * Article image with a blurhash placeholder baked in:
- *
- *   1. The blurhash is decoded to a tiny `data:image/bmp` URL rendered as an
- *      absolutely-positioned `<img>` behind the real one; CSS `blur()`
- *      smooths the 32px decode into a soft hint of the final photo.
- *   2. The real `<img>` starts at `opacity: 0` and fades in on `onLoad`.
- *      The ref callback checks `complete` so an image that finished loading
- *      before hydration (SSR + cache) doesn't stay invisible.
- *
- * The wrapper reserves the final box via `aspect-ratio`, so the page doesn't
- * shift when the bytes arrive. SSR-safe: the placeholder and layout render
- * on the server, only the fade is client behaviour.
- */
 const MAX_IMAGE_DIMENSION = 20000;
 
 function toDimension(value: number | string | undefined): number | undefined {
@@ -103,6 +89,22 @@ function toDimension(value: number | string | undefined): number | undefined {
     return i;
 }
 
+/**
+ * Article image with a blurhash placeholder baked in:
+ *
+ *   1. The blurhash is decoded to a tiny `data:image/bmp` URL rendered as an
+ *      absolutely-positioned `<img>` behind the real one; CSS `blur()`
+ *      smooths the 32px decode into a soft hint of the final photo.
+ *   2. The real `<img>` starts at `opacity: 0` and fades in on `onLoad`.
+ *      The ref callback checks `complete` so an image that finished loading
+ *      before hydration (SSR + cache) doesn't stay invisible.
+ *
+ * The wrapper reserves the final box via `aspect-ratio`, so the page doesn't
+ * shift when the bytes arrive. The placeholder and layout render on the
+ * server, but when a blurhash is given the real image stays at `opacity: 0`
+ * until client JS runs (hydration sets `loaded`), so without JS only the
+ * placeholder is visible.
+ */
 export function Image(props: HagakiImageProps) {
     const ctx = useContext(HagakiImageContext);
     const articleId = props.articleId ?? ctx.articleId ?? "";

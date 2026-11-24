@@ -7,8 +7,11 @@
  *   1. Insert: `startPending({ file })` analyzes the file (blurhash +
  *      dimensions) and resolves right away with an entry keyed by a fresh
  *      UUID, so the editor can insert `<Image imageId="…" />` and show the
- *      blurhash placeholder. The AVIF encode continues in the background;
- *      `status` moves `"encoding"` → `"ready"` | `"error"`.
+ *      blurhash placeholder. The AVIF encode starts after a task yield
+ *      that lets the caller insert the placeholder first (a paint before it
+ *      is likely, not guaranteed); it runs on the main thread (the
+ *      UI is blocked while it runs). `status` moves `"encoding"` →
+ *      `"ready"` | `"error"`.
  *   2. Preview: a `"ready"` entry has `previewUrl`, a `blob:` object URL —
  *      `getPending(id)?.previewUrl` is what the editor shows.
  *   3. Save: `findUncommittedImageIds(body, committedBody)` lists the ids the
@@ -16,9 +19,12 @@
  *      returns `{ imageId, blob }[]` (or throws `PendingImageError`). Send the
  *      blobs with the post (e.g. `FormData`) and commit them with
  *      `client.posts.save(post, { files })` / `client.commits.commitFiles`.
- *   4. After the commit succeeded: switch the editor to the committed image
- *      URLs first (update your committed body), then `removePending(id)` for
- *      each committed id — that revokes the object URL.
+ *   4. After the commit succeeded: update your committed body so the next
+ *      save does not resend those images, but keep the pending entries. The
+ *      committed CDN URLs usually 404 until the content deploy finishes, so
+ *      the editor keeps showing `previewUrl`. Release the entries with
+ *      `clearAll()` (or `removePending(id)`) when the editor unmounts — that
+ *      revokes the object URLs.
  *
  * `subscribe(fn)` plus `hasActive()` / `hasErrors()` drive the save button;
  * `sweepOrphanedErrors(body)` from the editor's `onChange` drops failures

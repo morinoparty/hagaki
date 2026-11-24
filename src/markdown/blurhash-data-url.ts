@@ -83,15 +83,15 @@ function rgbaToBmp(
     return buf;
 }
 
+// Decoded placeholders are tiny by design; never let an extreme aspect
+// ratio (from a malformed title) blow the BMP buffer up.
+const MAX_DECODE_HEIGHT = 1024;
+
 /**
  * Decode a blurhash and serialize it as a `data:image/bmp;base64,...` URL.
  * Designed to be called from a server loader so the placeholder can be baked
  * into the SSR HTML and rendered without any client-side JS.
  */
-// Decoded placeholders are tiny by design; never let an extreme aspect
-// ratio (from a malformed title) blow the BMP buffer up.
-const MAX_DECODE_HEIGHT = 1024;
-
 export function blurhashToDataUrl(
     hash: string,
     width?: number,
