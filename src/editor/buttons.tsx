@@ -288,8 +288,9 @@ export interface InsertImageComponentButtonProps
  * File picker for the MDX image flow: hands the file to the editor's
  * `onInsertImage` (via {@link ImageComponentContext}) and inserts an
  * `<Image imageId="…" blurHash64="…" width="…" height="…" alt="" />` component
- * with the attributes it resolves to. The blurhash placeholder shows
- * immediately while the AVIF encode continues in the background.
+ * with the attributes it resolves to. The blurhash placeholder is inserted
+ * first; the AVIF encode then runs on the main thread (blocking the UI while
+ * it runs) and the preview switches to the encoded image when it finishes.
  *
  * Disabled unless the editor was given an `onInsertImage` prop. If
  * `onInsertImage` rejects, nothing is inserted and the error is reported via

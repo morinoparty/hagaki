@@ -63,9 +63,11 @@ export interface HagakiEditorRootProps {
      */
     onInsertImage?: (file: File) => Promise<ImageComponentAttrs>;
     /**
-     * MDX image flow: display URL for a committed image id. When set,
-     * `<Image />` components render inline (blurhash placeholder + encode
-     * progress); ids without a pending entry resolve through this callback.
+     * MDX image flow: display URL for a committed image id. `<Image />`
+     * components always render inline. Ids with a pending entry use that
+     * entry's blurhash and `blob:` preview and never reach this callback;
+     * ids without one (committed images) resolve through it. If it is
+     * omitted, committed images show only the blurhash placeholder.
      */
     imagePreviewUrlFor?: (id: string) => string;
     /** Optional autocompletion suggestions for the image dialog. */

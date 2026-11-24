@@ -41,12 +41,17 @@ const UUID_REGEX = /^[a-f0-9-]{36}$/i;
 const MAX_IMAGE_DIMENSION = 20000;
 
 /**
- * JSX string attribute values have no escape sequence we want to rely on,
- * and a raw `"` or newline would corrupt the serialized tag — strip both so
- * a malicious/odd alt text can't break the MDX around it.
+ * Escape a value for a double-quoted MDX JSX string attribute. MDX decodes
+ * character references inside attribute strings, so `&` and `"` are written
+ * as `&amp;` / `&quot;` and the value round-trips exactly through
+ * `parseImageComponentAttributes` (a raw `"` can no longer break out of the
+ * tag). Newlines are collapsed to a space so the tag stays on one line.
  */
 function cleanAttrValue(value: string): string {
-    return value.replace(/["{}<>]/g, "").replace(/[\r\n]+/g, " ");
+    return value
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/[\r\n]+/g, " ");
 }
 
 /**

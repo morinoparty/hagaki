@@ -3,7 +3,8 @@
  *   1. `analyzeImage`: File → bitmap → output dimensions + blurhash
  *      (4x4 components) — fast, so the editor can show a placeholder early
  *   2. `encodeAnalyzedImage`: bitmap → resize → AVIF encode (WASM via
- *      @jsquash/avif) — slow, runs in the background
+ *      @jsquash/avif) — slow, runs on the main thread and blocks the UI
+ *      while it runs; callers should insert the placeholder first
  * `processImage` chains both for callers that want the one-shot result.
  *
  * Relies on `createImageBitmap`, `OffscreenCanvas`/`HTMLCanvasElement`, and
@@ -105,7 +106,8 @@ export async function analyzeImage(
 
 /**
  * Slow second stage: AVIF-encode the analyzed bitmap and enforce the byte
- * cap. Closes `analyzed.bitmap` when it finishes (success or failure).
+ * cap. The WASM encode runs on the main thread and blocks the UI while it
+ * runs. Closes `analyzed.bitmap` when it finishes (success or failure).
  */
 export async function encodeAnalyzedImage(
     analyzed: AnalyzedImage,
@@ -174,8 +176,10 @@ function fitDimensions(
     if (longEdge <= maxEdge) return { width: sourceW, height: sourceH };
     const scale = maxEdge / longEdge;
     return {
-        width: Math.round(sourceW * scale),
-        height: Math.round(sourceH * scale),
+        // Clamp to 1px: extreme aspect ratios would otherwise round the
+        // short edge to 0, which canvas, blurhash and AVIF all reject.
+        width: Math.max(1, Math.round(sourceW * scale)),
+        height: Math.max(1, Math.round(sourceH * scale)),
     };
 }
 

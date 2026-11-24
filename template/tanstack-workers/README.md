@@ -43,7 +43,7 @@ cp .dev.vars.example .dev.vars
 
 ```sh
 pnpm install
-pnpm run dev        # cf dev (Vite)
+pnpm run dev        # vp dev (Vite+ + @cloudflare/vite-plugin)
 pnpm run typecheck  # cf workers types && tsc
 ```
 
@@ -63,5 +63,5 @@ MineAuth には `<origin>/api/auth/callback/MineAuth` を redirect URI として
 
 ## 外に持ち出すとき
 
-- `package.json` の `"@morinoparty/hagaki": "workspace:*"` を公開版 (`"^0.2.0"` など) にする (npm にあるので `.npmrc` の設定は要らない)
+- `package.json` の `"@morinoparty/hagaki": "workspace:*"` を公開版 (`"^0.4.1"` など) にする (npm にあるので `.npmrc` の設定は要らない)
 - `biome.json` の `"root": false` と `"extends": "//"` を消して単独の設定にする

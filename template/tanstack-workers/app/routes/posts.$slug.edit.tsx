@@ -1,10 +1,10 @@
 import type { WikiPostDetail } from "@morinoparty/hagaki";
 import { diffRemovedImagePaths } from "@morinoparty/hagaki/markdown";
 import {
+    clearAll,
     getPending,
     hasActive,
     hasErrors,
-    removePending,
     subscribe as subscribePending,
     sweepOrphanedErrors,
 } from "@morinoparty/hagaki/pending-images";
@@ -84,7 +84,12 @@ function EditPostPage() {
             setImagesFailed(hasErrors());
         };
         update();
-        return subscribePending(update);
+        const unsubscribe = subscribePending(update);
+        // エディタを離れたら pending 画像の Blob / object URL をまとめて解放する。
+        return () => {
+            unsubscribe();
+            clearAll();
+        };
     }, []);
 
     async function onSave() {
@@ -103,11 +108,11 @@ function EditPostPage() {
             const result = await commitPostFn({
                 data: { post, images, deletePaths },
             });
-            // 先にコミット済み本文を更新して表示を CDN URL へ切り替えてから、
-            // コミットに載った分だけ pending を破棄する (object URL も
-            // revoke される)。clearAll だと保存中に挿入された画像まで消える。
+            // コミット済み本文だけ更新して、次の保存で同じ画像を再送しない
+            // ようにする。コミットした画像も content deploy が終わるまで CDN
+            // では 404 になるので、pending は破棄せず object URL のプレビューを
+            // 使い続ける (unmount 時に clearAll で解放する)。
             setCommittedBody(body);
-            for (const { imageId } of images) removePending(imageId);
             setStatusMsg({
                 kind: "success",
                 message: saveMessage(result.commitSha, deletePaths.length),

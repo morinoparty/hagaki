@@ -26,7 +26,9 @@ export interface DefaultPluginsOptions {
     imageAutocompleteSuggestions?: string[];
     /**
      * Display URL for a committed image id. `<Image />` MDX components
-     * render inline via {@link createImageComponentDescriptor}.
+     * render inline via {@link createImageComponentDescriptor}; pending ids
+     * use their entry's `blob:` preview instead. If omitted, committed
+     * images show only the blurhash placeholder.
      */
     imagePreviewUrlFor?: (id: string) => string;
     toolbarContents?: () => ReactNode;

@@ -6,6 +6,7 @@ import {
     type CSSProperties,
     createContext,
     useCallback,
+    useMemo,
     useState,
     useSyncExternalStore,
 } from "react";
@@ -162,11 +163,20 @@ function ImageComponentEditor(props: JsxEditorProps) {
     usePendingSnapshot(attrs?.id ?? "");
     const [loaded, setLoaded] = useState(false);
     const removeNode = useLexicalNodeRemove();
+    // Decoding the blurhash is not free; memoize it so typing elsewhere in
+    // the document (which re-renders every node) doesn't re-decode it.
+    const placeholder = useMemo(
+        () =>
+            attrs?.blurhash
+                ? blurhashToDataUrl(attrs.blurhash, attrs.width, attrs.height)
+                : "",
+        [attrs?.blurhash, attrs?.width, attrs?.height],
+    );
 
     if (!attrs) {
         return <span style={errorBoxStyle}>画像の指定が不正です</span>;
     }
-    const { id, blurhash, width, height, alt } = attrs;
+    const { id, width, height, alt } = attrs;
     const entry = getPending(id);
 
     if (entry?.status === "error") {
@@ -188,9 +198,6 @@ function ImageComponentEditor(props: JsxEditorProps) {
         );
     }
 
-    const placeholder = blurhash
-        ? blurhashToDataUrl(blurhash, width, height)
-        : "";
     // Encoding entries have no display URL yet; ready entries use their
     // in-memory object URL, committed images resolve through the config.
     const src = entry ? (entry.previewUrl ?? "") : config.previewUrlFor(id);

@@ -1,5 +1,7 @@
 import type { WikiCategory } from "@morinoparty/hagaki";
 import { createServerFn } from "@tanstack/react-start";
+import { requireSession } from "./auth-server";
+import { resolveCommitter } from "./committer";
 import { getHagakiClient } from "./hagaki";
 
 export const listCategoriesFn = createServerFn({ method: "GET" }).handler(
@@ -19,6 +21,10 @@ const SLUG_RE = /^[a-z0-9-]+$/;
 export const commitCategoryFn = createServerFn({ method: "POST" })
     .validator((category: WikiCategory) => category)
     .handler(async ({ data }) => {
+        // server fn は直接叩ける RPC なので、書き込みはここで認証する
+        // (commitPostFn と同じ)。一覧・取得の server fn は公開のまま。
+        await requireSession();
+        const committer = await resolveCommitter();
         // The slug is concatenated straight into a repo path — never trust
         // the client to keep it inside content/categories/.
         if (!SLUG_RE.test(data.slug)) {
@@ -42,6 +48,8 @@ export const commitCategoryFn = createServerFn({ method: "POST" })
         )}\n`;
         return client.commits.commitFiles({
             files: [{ path, content }],
-            commitMessage: `Update category: ${data.slug}`,
+            // gitmoji: 🏷️ = categories (matches the post's 📝 messages).
+            commitMessage: `🏷️ Update category: ${data.slug}`,
+            committer,
         });
     });

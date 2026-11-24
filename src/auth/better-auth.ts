@@ -17,7 +17,8 @@ export interface MapOAuthProfileOptions {
     /**
      * Claim names to try, in order, for the stable identity. The OIDC `sub` is
      * always tried last, so listing a provider-specific claim here lets it win
-     * without losing the standard fallback.
+     * without losing the standard fallback. Numeric claims (e.g. GitHub's
+     * `id`) are accepted and stringified.
      */
     idClaims?: readonly string[];
     /** Claim names to try, in order, for the display name. */
@@ -44,6 +45,10 @@ export interface MappedOAuthUser {
     image?: string;
 }
 
+/**
+ * First non-empty string among `claims`. Finite numbers count too and are
+ * stringified, since some providers send numeric ids (`{ "id": 123 }`).
+ */
 function firstString(
     profile: OAuthProfile,
     claims: readonly string[],
@@ -51,6 +56,9 @@ function firstString(
     for (const claim of claims) {
         const value = profile[claim];
         if (typeof value === "string" && value.length > 0) return value;
+        if (typeof value === "number" && Number.isFinite(value)) {
+            return String(value);
+        }
     }
     return undefined;
 }

@@ -55,7 +55,23 @@ function decodeBase64(content: string): string {
     return new TextDecoder().decode(bytes);
 }
 
-/** Read one file from the repository. `null` when it does not exist. */
+/**
+ * Whether an Octokit error is GitHub's 404. Only "not found" is mapped to an
+ * empty result by the readers below; auth, rate-limit and network failures
+ * are rethrown so callers never mistake them for a missing path.
+ */
+function isNotFound(e: unknown): boolean {
+    return (
+        typeof e === "object" &&
+        e !== null &&
+        (e as { status?: number }).status === 404
+    );
+}
+
+/**
+ * Read one file from the repository. `null` when it does not exist (404);
+ * any other API error is rethrown.
+ */
 export async function getFile(
     deps: FilesDeps,
     path: string,
@@ -73,16 +89,17 @@ export async function getFile(
             text: decodeBase64(data.content),
             sha: data.sha,
         };
-    } catch {
-        return null;
+    } catch (e) {
+        if (isNotFound(e)) return null;
+        throw e;
     }
 }
 
 /**
  * Read one file's raw bytes from the repository — for binary content
  * (images) that {@link getFile}'s UTF-8 decoding would corrupt. `null` when
- * it does not exist. The contents API only inlines files up to 1MB; larger
- * blobs return `null`.
+ * it does not exist (404); any other API error is rethrown. The contents API
+ * only inlines files up to 1MB; larger blobs return `null`.
  */
 export async function getBinaryFile(
     deps: FilesDeps,
@@ -104,12 +121,16 @@ export async function getBinaryFile(
         }
         const binary = atob(normalized);
         return Uint8Array.from(binary, (c) => c.charCodeAt(0));
-    } catch {
-        return null;
+    } catch (e) {
+        if (isNotFound(e)) return null;
+        throw e;
     }
 }
 
-/** Whether a path exists on the branch (or at `ref`). */
+/**
+ * Whether a path exists on the branch (or at `ref`). `false` only on 404;
+ * any other API error is rethrown.
+ */
 export async function fileExists(
     deps: FilesDeps,
     path: string,
@@ -124,12 +145,16 @@ export async function fileExists(
             ref: ref ?? branch,
         });
         return true;
-    } catch {
-        return false;
+    } catch (e) {
+        if (isNotFound(e)) return false;
+        throw e;
     }
 }
 
-/** List one directory. Empty when the path is missing or is a file. */
+/**
+ * List one directory. Empty when the path is missing (404) or is a file; any
+ * other API error is rethrown.
+ */
 export async function listDirectory(
     deps: FilesDeps,
     path: string,
@@ -151,14 +176,17 @@ export async function listDirectory(
                 sha: e.sha,
                 size: e.size ?? 0,
             }));
-    } catch {
-        return [];
+    } catch (e) {
+        if (isNotFound(e)) return [];
+        throw e;
     }
 }
 
 /**
  * Every file under a directory, recursively — the paths you need to hand to
  * `commitFiles({ deletePaths })` to remove an article with its assets.
+ * A failed directory read (other than 404) rejects instead of returning a
+ * partial list, so a delete never silently leaves files behind.
  */
 export async function listFilesRecursive(
     deps: FilesDeps,

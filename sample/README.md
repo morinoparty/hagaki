@@ -323,5 +323,5 @@ manifest 全件の線形探索をやめて O(1) で uuid を引けるように�
 
 - エディタ UI から `thumbnail` を設定する手段がまだない。
 - `history` を表示する UI がまだない。
-- `migrate-to-article.ts` は旧 wiki レイアウト用のままで、`modified` への
-  変換は実際の移行元に合わせて別途実装が必要。
+- hagaki には旧 wiki レイアウトからの移行スクリプトは含まれない。
+  `modified` (`date` + `userId`) への変換は、実際の移行元に合わせて別途実装が必要。

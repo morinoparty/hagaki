@@ -45,5 +45,10 @@ export function postFrontmatter(post: WikiPostDetail) {
         ...(post.editor && post.editor.length > 0
             ? { editor: post.editor }
             : {}),
+        // Keep the category option values on save, matching savePost;
+        // dropping them here would silently clear them from the frontmatter.
+        ...(post.option && Object.keys(post.option).length > 0
+            ? { option: post.option }
+            : {}),
     };
 }
