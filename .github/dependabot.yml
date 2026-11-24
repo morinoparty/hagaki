@@ -6,6 +6,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    # pnpm 12 の minimumReleaseAge (既定 1 日) より新しい版は lockfile に入れられないので揃える
+    cooldown:
+      default-days: 1
     groups:
       npm-minor-patch:
         update-types:
