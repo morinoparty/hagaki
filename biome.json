@@ -42,9 +42,6 @@
                     }
                 }
             },
-            "correctness": {
-                "noComponentHookFactories": "off"
-            },
             "style": {
                 "noParameterAssign": "error",
                 "useAsConstAssertion": "error",
