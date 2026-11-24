@@ -40,17 +40,17 @@ pnpm add @mdxeditor/editor @mdxeditor/gurx lexical@^0.48.0 react react-dom
 import { createHagakiClient } from "@morinoparty/hagaki";
 
 const hagaki = createHagakiClient({
-  github: {
-    owner: "morinoparty",
-    repo: "wiki-content",
-    branch: "main",
-    contentPath: "content/article", // 各記事は content/article/<uuid>/index.mdx
-    auth: env.HAGAKI_GITHUB_TOKEN, // string でも () => Promise<string> でも可
-  },
-  content: {
-    // コンテンツ Worker の配信 URL (<subdomain> はアカウントの workers.dev)
-    cdnBaseUrl: "https://wiki-content.<subdomain>.workers.dev",
-  },
+    github: {
+        owner: "morinoparty",
+        repo: "wiki-content",
+        branch: "main",
+        contentPath: "content/article", // 各記事は content/article/<uuid>/index.mdx
+        auth: env.HAGAKI_GITHUB_TOKEN, // string でも () => Promise<string> でも可
+    },
+    content: {
+        // コンテンツ Worker の配信 URL (<subdomain> はアカウントの workers.dev)
+        cdnBaseUrl: "https://wiki-content.<subdomain>.workers.dev",
+    },
 });
 
 const posts = await hagaki.posts.list({ sortBy: "created", order: "desc" });
@@ -64,12 +64,12 @@ import { committerFromBetterAuth } from "@morinoparty/hagaki/auth/better-auth";
 
 // committer 名は "<name> (<session.user.id>)" になる。この ID が履歴の userId
 const committer = committerFromBetterAuth(session, {
-  defaultEmail: "noreply@example.com",
+    defaultEmail: "noreply@example.com",
 });
 
 const result = await hagaki.posts.save(post, {
-  committer,
-  commitMessage: "📝 Update post: hello-world",
+    committer,
+    commitMessage: "📝 Update post: hello-world",
 });
 console.log(result.commitSha, result.commitUrl);
 ```
@@ -83,27 +83,35 @@ import { getPending, startPending } from "@morinoparty/hagaki/pending-images";
 import "@mdxeditor/editor/style.css";
 
 export function MyEditor(props: {
-  markdown: string;
-  onChange: (m: string) => void;
-  committedUrl: (imageId: string) => string;
+    markdown: string;
+    onChange: (m: string) => void;
+    committedUrl: (imageId: string) => string;
 }) {
-  return (
-    <HagakiEditor
-      markdown={props.markdown}
-      onChange={props.onChange}
-      onInsertImage={async (file) => {
-        const entry = await startPending({ file });
-        return { id: entry.id, blurhash: entry.blurhash, width: entry.width, height: entry.height, alt: "" };
-      }}
-      imagePreviewUrlFor={(id) => getPending(id)?.previewUrl ?? props.committedUrl(id)}
-    >
-      <HagakiEditor.Toolbar>
-        <HagakiEditor.UndoRedo />
-        <HagakiEditor.InsertImage.ComponentButton />
-      </HagakiEditor.Toolbar>
-      <HagakiEditor.Content className="my-prose" />
-    </HagakiEditor>
-  );
+    return (
+        <HagakiEditor
+            markdown={props.markdown}
+            onChange={props.onChange}
+            onInsertImage={async (file) => {
+                const entry = await startPending({ file });
+                return {
+                    id: entry.id,
+                    blurhash: entry.blurhash,
+                    width: entry.width,
+                    height: entry.height,
+                    alt: "",
+                };
+            }}
+            imagePreviewUrlFor={(id) =>
+                getPending(id)?.previewUrl ?? props.committedUrl(id)
+            }
+        >
+            <HagakiEditor.Toolbar>
+                <HagakiEditor.UndoRedo />
+                <HagakiEditor.InsertImage.ComponentButton />
+            </HagakiEditor.Toolbar>
+            <HagakiEditor.Content className="my-prose" />
+        </HagakiEditor>
+    );
 }
 ```
 
@@ -115,11 +123,11 @@ MDXEditor はクライアント専用なので、`lazy(() => import(...))` な�
 ブラウザで AVIF にエンコードした `Blob` をタブのメモリに保持し、保存時に
 本文と一緒にサーバへ送って 1 コミットにまとめる。一時置き場 (R2 など) は要らない。
 
-| 状態 | 意味 |
-|---|---|
+| 状態       | 意味                                                                                   |
+| ---------- | -------------------------------------------------------------------------------------- |
 | `encoding` | blurhash と寸法は確定済みで、AVIF エンコード中。エディタはぼかしのプレースホルダを出す |
-| `ready` | `blob` と `previewUrl` (`blob:` の object URL) がある。コミットできる |
-| `error` | エンコードに失敗した。`error` に原因が入る |
+| `ready`    | `blob` と `previewUrl` (`blob:` の object URL) がある。コミットできる                  |
+| `error`    | エンコードに失敗した。`error` に原因が入る                                             |
 
 1. **挿入**: `startPending({ file })` は blurhash が出た時点で resolve するので、すぐに `<Image imageId="…" />` を挿入できる。エンコードは裏で続く。
 2. **プレビュー**: `imagePreviewUrlFor` で `getPending(id)?.previewUrl` を返し、なければコミット済みの URL を返す。
@@ -195,34 +203,34 @@ MDXEditor はクライアント専用なので、`lazy(() => import(...))` な�
 「リポジトリ (GitHub)」の 2 つ。一覧や公開ページは CDN を読み、エディタのように
 **まだデプロイされていないコミットを見たい**ところはリポジトリを読む。
 
-| API | 読み先 | 内容 |
-|---|---|---|
-| `posts.list(options?)` | CDN | `article.json` の記事一覧。`sortBy: created \| updated \| title` |
-| `posts.getBySlug(slug)` | CDN | `slug-index.json` で uuid を引き、本文と `info.json` を返す |
-| `posts.getByUuid(uuid)` | CDN | 同上 (uuid を直接指定) |
-| `posts.getFromRepo(uuid, { ref })` | GitHub | リポジトリ上の `index.mdx`。`ref` で過去のリビジョン |
-| `posts.existsInRepo(uuid)` | GitHub | 記事本体があるか |
-| `posts.listUuidsInRepo()` | GitHub | 下書きを含む全記事の uuid |
-| `posts.repoPaths(uuid)` | GitHub | 記事ディレクトリ配下の全パス (削除時に `deletePaths` へ渡す) |
-| `posts.history(uuid, { perPage, page })` | GitHub | `index.mdx` に触れたコミット (新しい順)。`page` で古いページを読む |
-| `posts.firstCommit(uuid)` | GitHub | `index.mdx` に触れた最古のコミット (= 作成したコミット)。履歴の長さによらず最大 2 リクエスト。無ければ `null` |
-| `posts.diff(uuid, base, head)` | GitHub | 2 コミット間の本文の unified diff |
-| `posts.save(post, options?)` | GitHub | frontmatter と本文を保存。`files` / `deletePaths` を渡すと画像の追加・削除も同じコミットにする |
-| `categories.list()` | CDN | `categories.json` |
-| `files.get(path, ref?)` | GitHub | 任意ファイルの内容 (UTF-8) |
-| `files.getBinary(path, ref?)` | GitHub | 任意ファイルのバイト列 (画像など) |
-| `files.exists(path, ref?)` | GitHub | 存在確認 |
-| `files.list(path, ref?)` | GitHub | ディレクトリ 1 階層 |
-| `files.listRecursive(path, ref?)` | GitHub | 配下の全ファイルパス |
-| `files.firstCommit(path)` | GitHub | 任意パスに触れた最古のコミット |
-| `commits.commitFiles(input)` | GitHub | 複数ファイルの追加・更新・削除を 1 コミットに |
-| `commits.getWithChecks(sha)` | GitHub | コミットと check runs |
+| API                                      | 読み先 | 内容                                                                                                          |
+| ---------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------- |
+| `posts.list(options?)`                   | CDN    | `article.json` の記事一覧。`sortBy: created \| updated \| title`                                              |
+| `posts.getBySlug(slug)`                  | CDN    | `slug-index.json` で uuid を引き、本文と `info.json` を返す                                                   |
+| `posts.getByUuid(uuid)`                  | CDN    | 同上 (uuid を直接指定)                                                                                        |
+| `posts.getFromRepo(uuid, { ref })`       | GitHub | リポジトリ上の `index.mdx`。`ref` で過去のリビジョン                                                          |
+| `posts.existsInRepo(uuid)`               | GitHub | 記事本体があるか                                                                                              |
+| `posts.listUuidsInRepo()`                | GitHub | 下書きを含む全記事の uuid                                                                                     |
+| `posts.repoPaths(uuid)`                  | GitHub | 記事ディレクトリ配下の全パス (削除時に `deletePaths` へ渡す)                                                  |
+| `posts.history(uuid, { perPage, page })` | GitHub | `index.mdx` に触れたコミット (新しい順)。`page` で古いページを読む                                            |
+| `posts.firstCommit(uuid)`                | GitHub | `index.mdx` に触れた最古のコミット (= 作成したコミット)。履歴の長さによらず最大 2 リクエスト。無ければ `null` |
+| `posts.diff(uuid, base, head)`           | GitHub | 2 コミット間の本文の unified diff                                                                             |
+| `posts.save(post, options?)`             | GitHub | frontmatter と本文を保存。`files` / `deletePaths` を渡すと画像の追加・削除も同じコミットにする                |
+| `categories.list()`                      | CDN    | `categories.json`                                                                                             |
+| `files.get(path, ref?)`                  | GitHub | 任意ファイルの内容 (UTF-8)                                                                                    |
+| `files.getBinary(path, ref?)`            | GitHub | 任意ファイルのバイト列 (画像など)                                                                             |
+| `files.exists(path, ref?)`               | GitHub | 存在確認                                                                                                      |
+| `files.list(path, ref?)`                 | GitHub | ディレクトリ 1 階層                                                                                           |
+| `files.listRecursive(path, ref?)`        | GitHub | 配下の全ファイルパス                                                                                          |
+| `files.firstCommit(path)`                | GitHub | 任意パスに触れた最古のコミット                                                                                |
+| `commits.commitFiles(input)`             | GitHub | 複数ファイルの追加・更新・削除を 1 コミットに                                                                 |
+| `commits.getWithChecks(sha)`             | GitHub | コミットと check runs                                                                                         |
 
 ```ts
 // 記事を assets ごと削除する
 await hagaki.commits.commitFiles({
-  deletePaths: await hagaki.posts.repoPaths(uuid),
-  commitMessage: "🔥 Delete post",
+    deletePaths: await hagaki.posts.repoPaths(uuid),
+    commitMessage: "🔥 Delete post",
 });
 ```
 
@@ -256,8 +264,8 @@ import { userIdFromSession } from "@morinoparty/hagaki/auth/better-auth";
 
 const userId = userIdFromSession(session);
 const creator = (await hagaki.posts.firstCommit(uuid))?.userId ?? null;
-const mayEdit = userId !== null &&
-  (post.editor?.includes(userId) || creator === userId);
+const mayEdit =
+    userId !== null && (post.editor?.includes(userId) || creator === userId);
 ```
 
 下書きはコンテンツフォーマットの一部 (frontmatter の `draft: true`)。
@@ -299,14 +307,14 @@ export default createContentApp();
 import { bindings, defineConfig } from "cf/config";
 
 export default defineConfig({
-  worker: {
-    name: "hagaki-content",
-    compatibilityDate: "2026-10-01",
-    entrypoint: "src/index.ts",
-    workersDev: true,
-    assets: { runWorkerFirst: ["/article/*"] },
-    env: { ASSETS: bindings.assets() },
-  },
+    worker: {
+        name: "hagaki-content",
+        compatibilityDate: "2026-10-01",
+        entrypoint: "src/index.ts",
+        workersDev: true,
+        assets: { runWorkerFirst: ["/article/*"] },
+        env: { ASSETS: bindings.assets() },
+    },
 });
 ```
 
@@ -314,16 +322,16 @@ export default defineConfig({
 
 ## Entry points
 
-| import path | 内容 | 実行環境 |
-|---|---|---|
-| `hagaki` | `createHagakiClient`、型、`toUrlSlug`、`resolveCdnUrl` など | どこでも |
-| `hagaki/react` | `<Image>` と `HagakiImageConfig` (SSR 可、エディタなし) | どこでも |
-| `hagaki/editor` | `HagakiEditor` とツールバー部品 | ブラウザ |
-| `hagaki/image` | AVIF エンコードと blurhash (`processImage` など)、`validateAvifUpload` | エンコードはブラウザ、検証はどこでも |
-| `hagaki/markdown` | `<Image />` の組み立て・抽出、画像パスの差分、blurhash ユーティリティ | どこでも |
-| `hagaki/pending-images` | 保存前の画像を置くメモリ上のストア | ブラウザ |
-| `hagaki/auth/better-auth` | `committerFromBetterAuth`、`userIdFromSession`、`mapOAuthProfile` | どこでも |
-| `hagaki/content-worker` | `createContentApp` | Workers |
+| import path               | 内容                                                                   | 実行環境                             |
+| ------------------------- | ---------------------------------------------------------------------- | ------------------------------------ |
+| `hagaki`                  | `createHagakiClient`、型、`toUrlSlug`、`resolveCdnUrl` など            | どこでも                             |
+| `hagaki/react`            | `<Image>` と `HagakiImageConfig` (SSR 可、エディタなし)                | どこでも                             |
+| `hagaki/editor`           | `HagakiEditor` とツールバー部品                                        | ブラウザ                             |
+| `hagaki/image`            | AVIF エンコードと blurhash (`processImage` など)、`validateAvifUpload` | エンコードはブラウザ、検証はどこでも |
+| `hagaki/markdown`         | `<Image />` の組み立て・抽出、画像パスの差分、blurhash ユーティリティ  | どこでも                             |
+| `hagaki/pending-images`   | 保存前の画像を置くメモリ上のストア                                     | ブラウザ                             |
+| `hagaki/auth/better-auth` | `committerFromBetterAuth`、`userIdFromSession`、`mapOAuthProfile`      | どこでも                             |
+| `hagaki/content-worker`   | `createContentApp`                                                     | Workers                              |
 
 ## 破壊的変更: `userId` への改名
 
@@ -331,13 +339,13 @@ hagaki 0.3 までは、編集者の ID を Minecraft のプレイヤー前提で
 呼んでいた。認証方式に依存しないよう、次のリリースからすべて `userId` に改名した。
 古いキーは読まない (フォールバックしない)。
 
-| 0.3 まで | 改名後 |
-|---|---|
-| `PathCommit.player` | `PathCommit.userId` |
-| `WikiHistoryEntry.player` (`info.json` の `history[].player`) | `WikiHistoryEntry.userId` |
-| `EditorSummary.player` (`article.json` の `editors[].player`) | `EditorSummary.userId` |
-| `ImportedEdit.player` (frontmatter の `modified[].player`) | `ImportedEdit.userId` (`modified[].userId`) |
-| `playerFromCommitterName` | `userIdFromCommitterName` |
+| 0.3 まで                                                      | 改名後                                      |
+| ------------------------------------------------------------- | ------------------------------------------- |
+| `PathCommit.player`                                           | `PathCommit.userId`                         |
+| `WikiHistoryEntry.player` (`info.json` の `history[].player`) | `WikiHistoryEntry.userId`                   |
+| `EditorSummary.player` (`article.json` の `editors[].player`) | `EditorSummary.userId`                      |
+| `ImportedEdit.player` (frontmatter の `modified[].player`)    | `ImportedEdit.userId` (`modified[].userId`) |
+| `playerFromCommitterName`                                     | `userIdFromCommitterName`                   |
 
 あわせて以下も変わった。
 

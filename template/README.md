@@ -9,10 +9,10 @@ template/
 └── content-worker/     # コンテンツ配信 (content/ を Static Assets で配信)
 ```
 
-| ディレクトリ | 役割 |
-|---|---|
+| ディレクトリ                               | 役割                                                                                                                                          |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`tanstack-workers/`](./tanstack-workers/) | 編集 UI と server function を持つ TanStack Start アプリ。記事を `hagaki.posts.list()` で読み、保存時は本文と画像を 1 コミットで GitHub に書く |
-| [`content-worker/`](./content-worker/) | `hagaki generate` の生成物と記事を配信する Worker。`HAGAKI_CDN_BASE_URL` の向き先 |
+| [`content-worker/`](./content-worker/)     | `hagaki generate` の生成物と記事を配信する Worker。`HAGAKI_CDN_BASE_URL` の向き先                                                             |
 
 ## 流れ
 
