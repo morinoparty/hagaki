@@ -15,7 +15,7 @@
 		"@morinoparty/hagaki": "workspace:*"
 	},
 	"devDependencies": {
-		"cf": "1.0.0-rc.2",
+		"cf": "1.0.0-rc.4",
 		"typescript": "^7.0.2",
 		"wrangler": "^4.166.0"
 	},
