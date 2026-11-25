@@ -54,8 +54,8 @@ YAML。gray-matter（js-yaml）でシリアライズされる形（2スペース
 
 ```yaml
 option:
-  x: 1000
-  world: overworld
+    x: 1000
+    world: overworld
 ```
 
 型は宣言に従うスカラー（string / number / boolean）のみ。`type: "enum"` の
@@ -84,8 +84,8 @@ hagaki は ID の中身を解釈しない（例では OIDC の `sub` が UUID �
 
 ```yaml
 editor:
-  - 069a79f4-44e9-4726-a5be-fca90e38aaf5
-  - 853c80ef-3c37-49fd-aa49-938b674adae6
+    - 069a79f4-44e9-4726-a5be-fca90e38aaf5
+    - 853c80ef-3c37-49fd-aa49-938b674adae6
 ```
 
 - 読み込み時（`parsePostMarkdown` / `parseEditorList`）は、各要素を trim し、
@@ -143,13 +143,13 @@ uuid: 0e95538c-f931-4616-8b39-88cb608c90b4
 category: general
 description: hagaki のコンテンツフォーマットと Markdown 記法のサンプル記事
 thumbnail:
-  imageId: 98e879e4-d625-4ca7-8e20-4df80ab0c285
-  blurhash64: VUhLMGc4JCV4XlZzfld4dFJpdFIlZ05iTXtWQHNTb2ZWQHNv
+    imageId: 98e879e4-d625-4ca7-8e20-4df80ab0c285
+    blurhash64: VUhLMGc4JCV4XlZzfld4dFJpdFIlZ05iTXtWQHNTb2ZWQHNv
 modified:
-  - date: 2024-06-19T15:00:00.000Z
-    userId: f8b761ec-4a54-48eb-a040-c5604042bcc9
-  - date: 2024-06-20T12:30:00.000Z
-    userId: 389b1a68-f647-4dd0-a421-61b6c22fdebe
+    - date: 2024-06-19T15:00:00.000Z
+      userId: f8b761ec-4a54-48eb-a040-c5604042bcc9
+    - date: 2024-06-20T12:30:00.000Z
+      userId: 389b1a68-f647-4dd0-a421-61b6c22fdebe
 ---
 ```
 
@@ -205,30 +205,30 @@ MDX（Markdown + `<Image />` コンポーネントのみ）。hagaki 自身は�
 
 ```json
 {
-	"title": "General",
-	"slug": "general",
-	"body": "一般的な記事",
-	"option": {
-		"x": {
-			"type": "integer",
-			"label": "X座標",
-			"description": "ワールド座標の X。地図で記事を探すのに使う",
-			"placeholder": "1000",
-			"required": true
-		},
-		"world": {
-			"type": "enum",
-			"label": "ワールド",
-			"description": "座標が属するワールド",
-			"required": true,
-			"default": "overworld",
-			"enum": [
-				{ "id": "overworld", "display": "オーバーワールド" },
-				{ "id": "nether", "display": "ネザー" },
-				{ "id": "the_end", "display": "エンド" }
-			]
-		}
-	}
+    "title": "General",
+    "slug": "general",
+    "body": "一般的な記事",
+    "option": {
+        "x": {
+            "type": "integer",
+            "label": "X座標",
+            "description": "ワールド座標の X。地図で記事を探すのに使う",
+            "placeholder": "1000",
+            "required": true
+        },
+        "world": {
+            "type": "enum",
+            "label": "ワールド",
+            "description": "座標が属するワールド",
+            "required": true,
+            "default": "overworld",
+            "enum": [
+                { "id": "overworld", "display": "オーバーワールド" },
+                { "id": "nether", "display": "ネザー" },
+                { "id": "the_end", "display": "エンド" }
+            ]
+        }
+    }
 }
 ```
 
@@ -248,31 +248,31 @@ git コミット履歴のマージは**ここで焼き込む**ので、消費側
 
 ```json
 {
-	"title": "記法サンプル",
-	"slug": "test",
-	"uuid": "0e95538c-f931-4616-8b39-88cb608c90b4",
-	"category": "general",
-	"description": "…",
-	"thumbnail": {
-		"imageId": "98e879e4-d625-4ca7-8e20-4df80ab0c285",
-		"blurhash64": "VUhLMGc4JCV4XlZzfld4dFJpdFIlZ05iTXtWQHNTb2ZWQHNv"
-	},
-	"option": { "x": 1000, "world": "overworld" },
-	"created": "2024-06-19T15:00:00.000Z",
-	"updated": "2026-08-01T00:00:00.000Z",
-	"history": [
-		{
-			"date": "2024-06-19T15:00:00.000Z",
-			"userId": "f8b761ec-…",
-			"source": "imported"
-		},
-		{
-			"date": "2026-08-01T00:00:00.000Z",
-			"userId": "389b1a68-…",
-			"source": "git",
-			"commit": "<sha>"
-		}
-	]
+    "title": "記法サンプル",
+    "slug": "test",
+    "uuid": "0e95538c-f931-4616-8b39-88cb608c90b4",
+    "category": "general",
+    "description": "…",
+    "thumbnail": {
+        "imageId": "98e879e4-d625-4ca7-8e20-4df80ab0c285",
+        "blurhash64": "VUhLMGc4JCV4XlZzfld4dFJpdFIlZ05iTXtWQHNTb2ZWQHNv"
+    },
+    "option": { "x": 1000, "world": "overworld" },
+    "created": "2024-06-19T15:00:00.000Z",
+    "updated": "2026-08-01T00:00:00.000Z",
+    "history": [
+        {
+            "date": "2024-06-19T15:00:00.000Z",
+            "userId": "f8b761ec-…",
+            "source": "imported"
+        },
+        {
+            "date": "2026-08-01T00:00:00.000Z",
+            "userId": "389b1a68-…",
+            "source": "git",
+            "commit": "<sha>"
+        }
+    ]
 }
 ```
 

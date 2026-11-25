@@ -25,50 +25,50 @@ const BLURHASH_Y_COMPONENTS = 4;
 export const MAX_AVIF_BYTES = 500 * 1024;
 
 export interface ProcessedImage {
-	avif: Uint8Array<ArrayBuffer>;
-	blurhash: string;
-	width: number;
-	height: number;
-	originalName: string;
-	originalType: string;
+    avif: Uint8Array<ArrayBuffer>;
+    blurhash: string;
+    width: number;
+    height: number;
+    originalName: string;
+    originalType: string;
 }
 
 export class ImageProcessingError extends Error {
-	constructor(
-		message: string,
-		readonly code:
-			| "decode-failed"
-			| "encode-failed"
-			| "too-large"
-			| "blurhash-failed",
-	) {
-		super(message);
-		this.name = "ImageProcessingError";
-	}
+    constructor(
+        message: string,
+        readonly code:
+            | "decode-failed"
+            | "encode-failed"
+            | "too-large"
+            | "blurhash-failed",
+    ) {
+        super(message);
+        this.name = "ImageProcessingError";
+    }
 }
 
 export interface ProcessImageOptions {
-	/** Long-edge clamp before AVIF encode. Defaults to 1920. */
-	maxDimension?: number;
-	/** AVIF quality 0–100. Defaults to 50. */
-	quality?: number;
-	/** Hard cap on the encoded byte length. Defaults to 500 KB. */
-	maxBytes?: number;
+    /** Long-edge clamp before AVIF encode. Defaults to 1920. */
+    maxDimension?: number;
+    /** AVIF quality 0–100. Defaults to 50. */
+    quality?: number;
+    /** Hard cap on the encoded byte length. Defaults to 500 KB. */
+    maxBytes?: number;
 }
 
 export interface AnalyzedImage {
-	blurhash: string;
-	/** Target AVIF output width (after the long-edge clamp). */
-	width: number;
-	/** Target AVIF output height (after the long-edge clamp). */
-	height: number;
-	/**
-	 * Decoded source bitmap, handed off to {@link encodeAnalyzedImage} which
-	 * closes it when done. Callers must not close it themselves.
-	 */
-	bitmap: ImageBitmap;
-	originalName: string;
-	originalType: string;
+    blurhash: string;
+    /** Target AVIF output width (after the long-edge clamp). */
+    width: number;
+    /** Target AVIF output height (after the long-edge clamp). */
+    height: number;
+    /**
+     * Decoded source bitmap, handed off to {@link encodeAnalyzedImage} which
+     * closes it when done. Callers must not close it themselves.
+     */
+    bitmap: ImageBitmap;
+    originalName: string;
+    originalType: string;
 }
 
 /**
@@ -77,31 +77,31 @@ export interface AnalyzedImage {
  * the (slow) AVIF encode has even started.
  */
 export async function analyzeImage(
-	file: File,
-	options?: ProcessImageOptions,
+    file: File,
+    options?: ProcessImageOptions,
 ): Promise<AnalyzedImage> {
-	const maxDimension = options?.maxDimension ?? MAX_IMAGE_DIMENSION;
+    const maxDimension = options?.maxDimension ?? MAX_IMAGE_DIMENSION;
 
-	const bitmap = await loadBitmap(file);
-	try {
-		const { width, height } = fitDimensions(
-			bitmap.width,
-			bitmap.height,
-			maxDimension,
-		);
-		const blurhash = await makeBlurhash(bitmap);
-		return {
-			blurhash,
-			width,
-			height,
-			bitmap,
-			originalName: file.name,
-			originalType: file.type,
-		};
-	} catch (e) {
-		bitmap.close?.();
-		throw e;
-	}
+    const bitmap = await loadBitmap(file);
+    try {
+        const { width, height } = fitDimensions(
+            bitmap.width,
+            bitmap.height,
+            maxDimension,
+        );
+        const blurhash = await makeBlurhash(bitmap);
+        return {
+            blurhash,
+            width,
+            height,
+            bitmap,
+            originalName: file.name,
+            originalType: file.type,
+        };
+    } catch (e) {
+        bitmap.close?.();
+        throw e;
+    }
 }
 
 /**
@@ -110,148 +110,148 @@ export async function analyzeImage(
  * runs. Closes `analyzed.bitmap` when it finishes (success or failure).
  */
 export async function encodeAnalyzedImage(
-	analyzed: AnalyzedImage,
-	options?: ProcessImageOptions,
+    analyzed: AnalyzedImage,
+    options?: ProcessImageOptions,
 ): Promise<Uint8Array<ArrayBuffer>> {
-	const quality = options?.quality ?? AVIF_QUALITY;
-	const maxBytes = options?.maxBytes ?? MAX_AVIF_BYTES;
+    const quality = options?.quality ?? AVIF_QUALITY;
+    const maxBytes = options?.maxBytes ?? MAX_AVIF_BYTES;
 
-	try {
-		const { bitmap, width, height } = analyzed;
-		const resized = drawToCanvas(bitmap, width, height);
-		const imageData = canvasToImageData(resized, width, height);
+    try {
+        const { bitmap, width, height } = analyzed;
+        const resized = drawToCanvas(bitmap, width, height);
+        const imageData = canvasToImageData(resized, width, height);
 
-		const avifBuffer = await encode(imageData, {
-			quality,
-			speed: AVIF_SPEED,
-		});
-		const avif = new Uint8Array(avifBuffer);
-		if (avif.byteLength > maxBytes) {
-			throw new ImageProcessingError(
-				`Encoded AVIF is ${Math.round(avif.byteLength / 1024)} KB (limit: ${
-					maxBytes / 1024
-				} KB). Try a smaller source image.`,
-				"too-large",
-			);
-		}
-		return avif;
-	} finally {
-		analyzed.bitmap.close?.();
-	}
+        const avifBuffer = await encode(imageData, {
+            quality,
+            speed: AVIF_SPEED,
+        });
+        const avif = new Uint8Array(avifBuffer);
+        if (avif.byteLength > maxBytes) {
+            throw new ImageProcessingError(
+                `Encoded AVIF is ${Math.round(avif.byteLength / 1024)} KB (limit: ${
+                    maxBytes / 1024
+                } KB). Try a smaller source image.`,
+                "too-large",
+            );
+        }
+        return avif;
+    } finally {
+        analyzed.bitmap.close?.();
+    }
 }
 
 export async function processImage(
-	file: File,
-	options?: ProcessImageOptions,
+    file: File,
+    options?: ProcessImageOptions,
 ): Promise<ProcessedImage> {
-	const analyzed = await analyzeImage(file, options);
-	const avif = await encodeAnalyzedImage(analyzed, options);
-	return {
-		avif,
-		blurhash: analyzed.blurhash,
-		width: analyzed.width,
-		height: analyzed.height,
-		originalName: analyzed.originalName,
-		originalType: analyzed.originalType,
-	};
+    const analyzed = await analyzeImage(file, options);
+    const avif = await encodeAnalyzedImage(analyzed, options);
+    return {
+        avif,
+        blurhash: analyzed.blurhash,
+        width: analyzed.width,
+        height: analyzed.height,
+        originalName: analyzed.originalName,
+        originalType: analyzed.originalType,
+    };
 }
 
 async function loadBitmap(file: File): Promise<ImageBitmap> {
-	try {
-		return await createImageBitmap(file);
-	} catch (e) {
-		throw new ImageProcessingError(
-			`Cannot decode image: ${e instanceof Error ? e.message : String(e)}`,
-			"decode-failed",
-		);
-	}
+    try {
+        return await createImageBitmap(file);
+    } catch (e) {
+        throw new ImageProcessingError(
+            `Cannot decode image: ${e instanceof Error ? e.message : String(e)}`,
+            "decode-failed",
+        );
+    }
 }
 
 function fitDimensions(
-	sourceW: number,
-	sourceH: number,
-	maxEdge: number,
+    sourceW: number,
+    sourceH: number,
+    maxEdge: number,
 ): { width: number; height: number } {
-	const longEdge = Math.max(sourceW, sourceH);
-	if (longEdge <= maxEdge) return { width: sourceW, height: sourceH };
-	const scale = maxEdge / longEdge;
-	return {
-		// Clamp to 1px: extreme aspect ratios would otherwise round the
-		// short edge to 0, which canvas, blurhash and AVIF all reject.
-		width: Math.max(1, Math.round(sourceW * scale)),
-		height: Math.max(1, Math.round(sourceH * scale)),
-	};
+    const longEdge = Math.max(sourceW, sourceH);
+    if (longEdge <= maxEdge) return { width: sourceW, height: sourceH };
+    const scale = maxEdge / longEdge;
+    return {
+        // Clamp to 1px: extreme aspect ratios would otherwise round the
+        // short edge to 0, which canvas, blurhash and AVIF all reject.
+        width: Math.max(1, Math.round(sourceW * scale)),
+        height: Math.max(1, Math.round(sourceH * scale)),
+    };
 }
 
 function drawToCanvas(
-	source: ImageBitmap,
-	width: number,
-	height: number,
+    source: ImageBitmap,
+    width: number,
+    height: number,
 ): HTMLCanvasElement | OffscreenCanvas {
-	if (typeof OffscreenCanvas !== "undefined") {
-		const canvas = new OffscreenCanvas(width, height);
-		const ctx = canvas.getContext("2d");
-		if (!ctx) {
-			throw new ImageProcessingError(
-				"Cannot acquire 2D context",
-				"decode-failed",
-			);
-		}
-		ctx.drawImage(source, 0, 0, width, height);
-		return canvas;
-	}
-	const canvas = document.createElement("canvas");
-	canvas.width = width;
-	canvas.height = height;
-	const ctx = canvas.getContext("2d");
-	if (!ctx) {
-		throw new ImageProcessingError(
-			"Cannot acquire 2D context",
-			"decode-failed",
-		);
-	}
-	ctx.drawImage(source, 0, 0, width, height);
-	return canvas;
+    if (typeof OffscreenCanvas !== "undefined") {
+        const canvas = new OffscreenCanvas(width, height);
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+            throw new ImageProcessingError(
+                "Cannot acquire 2D context",
+                "decode-failed",
+            );
+        }
+        ctx.drawImage(source, 0, 0, width, height);
+        return canvas;
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+        throw new ImageProcessingError(
+            "Cannot acquire 2D context",
+            "decode-failed",
+        );
+    }
+    ctx.drawImage(source, 0, 0, width, height);
+    return canvas;
 }
 
 function canvasToImageData(
-	canvas: HTMLCanvasElement | OffscreenCanvas,
-	width: number,
-	height: number,
+    canvas: HTMLCanvasElement | OffscreenCanvas,
+    width: number,
+    height: number,
 ): ImageData {
-	const ctx = canvas.getContext("2d") as
-		| CanvasRenderingContext2D
-		| OffscreenCanvasRenderingContext2D
-		| null;
-	if (!ctx) {
-		throw new ImageProcessingError(
-			"Cannot acquire 2D context",
-			"decode-failed",
-		);
-	}
-	return ctx.getImageData(0, 0, width, height);
+    const ctx = canvas.getContext("2d") as
+        | CanvasRenderingContext2D
+        | OffscreenCanvasRenderingContext2D
+        | null;
+    if (!ctx) {
+        throw new ImageProcessingError(
+            "Cannot acquire 2D context",
+            "decode-failed",
+        );
+    }
+    return ctx.getImageData(0, 0, width, height);
 }
 
 async function makeBlurhash(source: ImageBitmap): Promise<string> {
-	try {
-		const { width, height } = fitDimensions(
-			source.width,
-			source.height,
-			BLURHASH_MAX_DIMENSION,
-		);
-		const canvas = drawToCanvas(source, width, height);
-		const imageData = canvasToImageData(canvas, width, height);
-		return encodeBlurhash(
-			imageData.data,
-			width,
-			height,
-			BLURHASH_X_COMPONENTS,
-			BLURHASH_Y_COMPONENTS,
-		);
-	} catch (e) {
-		throw new ImageProcessingError(
-			`Blurhash encode failed: ${e instanceof Error ? e.message : String(e)}`,
-			"blurhash-failed",
-		);
-	}
+    try {
+        const { width, height } = fitDimensions(
+            source.width,
+            source.height,
+            BLURHASH_MAX_DIMENSION,
+        );
+        const canvas = drawToCanvas(source, width, height);
+        const imageData = canvasToImageData(canvas, width, height);
+        return encodeBlurhash(
+            imageData.data,
+            width,
+            height,
+            BLURHASH_X_COMPONENTS,
+            BLURHASH_Y_COMPONENTS,
+        );
+    } catch (e) {
+        throw new ImageProcessingError(
+            `Blurhash encode failed: ${e instanceof Error ? e.message : String(e)}`,
+            "blurhash-failed",
+        );
+    }
 }

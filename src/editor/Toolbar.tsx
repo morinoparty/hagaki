@@ -2,8 +2,8 @@
 import type { ReactNode } from "react";
 
 export interface HagakiEditorToolbarProps {
-	children?: ReactNode;
-	className?: string;
+    children?: ReactNode;
+    className?: string;
 }
 
 /**
@@ -13,5 +13,5 @@ export interface HagakiEditorToolbarProps {
  * because they rely on MDXEditor's gurx context.
  */
 export function Toolbar(_props: HagakiEditorToolbarProps): null {
-	return null;
+    return null;
 }

@@ -1,165 +1,166 @@
 "use client";
 
 import {
-	AdmonitionDirectiveDescriptor,
-	codeBlockPlugin,
-	directivesPlugin,
-	headingsPlugin,
-	imagePlugin,
-	jsxPlugin,
-	linkPlugin,
-	listsPlugin,
-	MDXEditor,
-	type MDXEditorMethods,
-	markdownShortcutPlugin,
-	quotePlugin,
-	type RealmPlugin,
-	type Translation,
-	tablePlugin,
-	thematicBreakPlugin,
-	toolbarPlugin,
+    AdmonitionDirectiveDescriptor,
+    codeBlockPlugin,
+    directivesPlugin,
+    headingsPlugin,
+    imagePlugin,
+    jsxPlugin,
+    linkPlugin,
+    listsPlugin,
+    MDXEditor,
+    type MDXEditorMethods,
+    markdownShortcutPlugin,
+    quotePlugin,
+    type RealmPlugin,
+    type Translation,
+    tablePlugin,
+    thematicBreakPlugin,
+    toolbarPlugin,
 } from "@mdxeditor/editor";
 import {
-	Children,
-	isValidElement,
-	type MutableRefObject,
-	type ReactNode,
-	useMemo,
+    Children,
+    isValidElement,
+    type MutableRefObject,
+    type ReactNode,
+    useMemo,
 } from "react";
 import type { ImageComponentAttrs } from "../markdown/image-jsx.js";
 import { Content } from "./Content.js";
 import {
-	createImageComponentDescriptor,
-	ImageComponentContext,
+    createImageComponentDescriptor,
+    ImageComponentContext,
 } from "./image-jsx.js";
 import { defaultPlugins } from "./plugins.js";
 import { Toolbar } from "./Toolbar.js";
 
 export interface HagakiEditorRootProps {
-	markdown: string;
-	onChange: (markdown: string) => void;
-	editorRef?: MutableRefObject<MDXEditorMethods | null>;
-	/**
-	 * Children of the editor. Provide `<HagakiEditor.Toolbar>` and
-	 * `<HagakiEditor.Content>` slots to customize each part.
-	 *
-	 * If `plugins` is supplied, children are ignored.
-	 */
-	children?: ReactNode;
-	/**
-	 * Pre-built plugin array. Pass this to fully take over plugin assembly —
-	 * children are ignored when this is set.
-	 */
-	plugins?: RealmPlugin[];
-	/** Async image upload handler (returns the URL to insert into markdown). */
-	onImageUpload?: (file: File) => Promise<string>;
-	/** Async image preview handler (resolves a URL to a display-able URL). */
-	onImagePreview?: (src: string) => Promise<string>;
-	/**
-	 * MDX image flow: analyze the file + start the pending encode
-	 * (`startPending` from `hagaki/pending-images`), resolving with the
-	 * attributes for the `<Image />` component to insert. Consumed by
-	 * `<HagakiEditor.InsertImage.ComponentButton>`.
-	 */
-	onInsertImage?: (file: File) => Promise<ImageComponentAttrs>;
-	/**
-	 * MDX image flow: display URL for a committed image id. `<Image />`
-	 * components always render inline. Ids with a pending entry use that
-	 * entry's blurhash and `blob:` preview and never reach this callback;
-	 * ids without one (committed images) resolve through it. If it is
-	 * omitted, committed images show only the blurhash placeholder.
-	 */
-	imagePreviewUrlFor?: (id: string) => string;
-	/** Optional autocompletion suggestions for the image dialog. */
-	imageAutocompleteSuggestions?: string[];
-	className?: string;
-	/** Fallback when no `<HagakiEditor.Content>` slot is provided. */
-	contentEditableClassName?: string;
-	/** MDXEditor's `suppressHtmlProcessing`. Defaults to `true`. */
-	suppressHtmlProcessing?: boolean;
-	onError?: (e: unknown) => void;
-	/**
-	 * Override i18n strings for the built-in image dialog, link dialog, alt
-	 * texts, etc. Either pass a `Translation` function (full control), or an
-	 * `i18n` object that maps keys (`"uploadImage.addViaUrlInstructions"` etc.)
-	 * to their replacements — unknown keys fall back to the default English.
-	 */
-	translation?: Translation;
-	i18n?: Record<string, string>;
+    markdown: string;
+    onChange: (markdown: string) => void;
+    editorRef?: MutableRefObject<MDXEditorMethods | null>;
+    /**
+     * Children of the editor. Provide `<HagakiEditor.Toolbar>` and
+     * `<HagakiEditor.Content>` slots to customize each part.
+     *
+     * If `plugins` is supplied, children are ignored.
+     */
+    children?: ReactNode;
+    /**
+     * Pre-built plugin array. Pass this to fully take over plugin assembly —
+     * children are ignored when this is set.
+     */
+    plugins?: RealmPlugin[];
+    /** Async image upload handler (returns the URL to insert into markdown). */
+    onImageUpload?: (file: File) => Promise<string>;
+    /** Async image preview handler (resolves a URL to a display-able URL). */
+    onImagePreview?: (src: string) => Promise<string>;
+    /**
+     * MDX image flow: analyze the file + start the pending encode
+     * (`startPending` from `hagaki/pending-images`), resolving with the
+     * attributes for the `<Image />` component to insert. Consumed by
+     * `<HagakiEditor.InsertImage.ComponentButton>`.
+     */
+    onInsertImage?: (file: File) => Promise<ImageComponentAttrs>;
+    /**
+     * MDX image flow: display URL for a committed image id. `<Image />`
+     * components always render inline. Ids with a pending entry use that
+     * entry's blurhash and `blob:` preview and never reach this callback;
+     * ids without one (committed images) resolve through it. If it is
+     * omitted, committed images show only the blurhash placeholder.
+     */
+    imagePreviewUrlFor?: (id: string) => string;
+    /** Optional autocompletion suggestions for the image dialog. */
+    imageAutocompleteSuggestions?: string[];
+    className?: string;
+    /** Fallback when no `<HagakiEditor.Content>` slot is provided. */
+    contentEditableClassName?: string;
+    /** MDXEditor's `suppressHtmlProcessing`. Defaults to `true`. */
+    suppressHtmlProcessing?: boolean;
+    onError?: (e: unknown) => void;
+    /**
+     * Override i18n strings for the built-in image dialog, link dialog, alt
+     * texts, etc. Either pass a `Translation` function (full control), or an
+     * `i18n` object that maps keys (`"uploadImage.addViaUrlInstructions"` etc.)
+     * to their replacements — unknown keys fall back to the default English.
+     */
+    translation?: Translation;
+    i18n?: Record<string, string>;
 }
 
 interface ResolvedSlots {
-	toolbarChildren?: ReactNode;
-	toolbarClassName?: string;
-	contentClassName?: string;
+    toolbarChildren?: ReactNode;
+    toolbarClassName?: string;
+    contentClassName?: string;
 }
 
 function resolveSlots(children: ReactNode): ResolvedSlots {
-	const slots: ResolvedSlots = {};
-	for (const child of Children.toArray(children)) {
-		if (!isValidElement(child)) continue;
-		if (child.type === Toolbar) {
-			const props = child.props as {
-				children?: ReactNode;
-				className?: string;
-			};
-			slots.toolbarChildren = props.children;
-			slots.toolbarClassName = props.className;
-		} else if (child.type === Content) {
-			const props = child.props as { className?: string };
-			slots.contentClassName = props.className;
-		}
-	}
-	return slots;
+    const slots: ResolvedSlots = {};
+    for (const child of Children.toArray(children)) {
+        if (!isValidElement(child)) continue;
+        if (child.type === Toolbar) {
+            const props = child.props as {
+                children?: ReactNode;
+                className?: string;
+            };
+            slots.toolbarChildren = props.children;
+            slots.toolbarClassName = props.className;
+        } else if (child.type === Content) {
+            const props = child.props as { className?: string };
+            slots.contentClassName = props.className;
+        }
+    }
+    return slots;
 }
 
 function buildPlugins(
-	props: HagakiEditorRootProps,
-	slots: ResolvedSlots,
+    props: HagakiEditorRootProps,
+    slots: ResolvedSlots,
 ): RealmPlugin[] {
-	const plugins: RealmPlugin[] = [
-		headingsPlugin(),
-		linkPlugin(),
-		tablePlugin(),
-		listsPlugin(),
-		directivesPlugin({
-			directiveDescriptors: [AdmonitionDirectiveDescriptor],
-		}),
-		// MDX `<Image />` support. Registered even without a resolver so
-		// bodies that contain the component still parse instead of erroring.
-		jsxPlugin({
-			jsxComponentDescriptors: [
-				createImageComponentDescriptor({
-					previewUrlFor: props.imagePreviewUrlFor ?? (() => ""),
-				}),
-			],
-		}),
-		codeBlockPlugin(),
-		quotePlugin(),
-		thematicBreakPlugin(),
-		markdownShortcutPlugin(),
-	];
+    const plugins: RealmPlugin[] = [
+        headingsPlugin(),
+        linkPlugin(),
+        tablePlugin(),
+        listsPlugin(),
+        directivesPlugin({
+            directiveDescriptors: [AdmonitionDirectiveDescriptor],
+        }),
+        // MDX `<Image />` support. Registered even without a resolver so
+        // bodies that contain the component still parse instead of erroring.
+        jsxPlugin({
+            jsxComponentDescriptors: [
+                createImageComponentDescriptor({
+                    previewUrlFor: props.imagePreviewUrlFor ?? (() => ""),
+                }),
+            ],
+        }),
+        codeBlockPlugin(),
+        quotePlugin(),
+        thematicBreakPlugin(),
+        markdownShortcutPlugin(),
+    ];
 
-	if (props.onImageUpload || props.onImagePreview) {
-		plugins.push(
-			imagePlugin({
-				imageUploadHandler: props.onImageUpload,
-				imagePreviewHandler: props.onImagePreview,
-				imageAutocompleteSuggestions: props.imageAutocompleteSuggestions,
-			}),
-		);
-	}
+    if (props.onImageUpload || props.onImagePreview) {
+        plugins.push(
+            imagePlugin({
+                imageUploadHandler: props.onImageUpload,
+                imagePreviewHandler: props.onImagePreview,
+                imageAutocompleteSuggestions:
+                    props.imageAutocompleteSuggestions,
+            }),
+        );
+    }
 
-	if (slots.toolbarChildren != null) {
-		plugins.push(
-			toolbarPlugin({
-				toolbarClassName: slots.toolbarClassName,
-				toolbarContents: () => slots.toolbarChildren,
-			}),
-		);
-	}
+    if (slots.toolbarChildren != null) {
+        plugins.push(
+            toolbarPlugin({
+                toolbarClassName: slots.toolbarClassName,
+                toolbarContents: () => slots.toolbarChildren,
+            }),
+        );
+    }
 
-	return plugins;
+    return plugins;
 }
 
 /**
@@ -183,66 +184,68 @@ function buildPlugins(
  * `dynamic(() => import("./your-editor"), { ssr: false })` or `lazy(...)`.
  */
 function resolveTranslation(
-	translation: Translation | undefined,
-	i18n: Record<string, string> | undefined,
+    translation: Translation | undefined,
+    i18n: Record<string, string> | undefined,
 ): Translation | undefined {
-	if (translation) return translation;
-	if (!i18n) return undefined;
-	return (key, defaultValue, interpolations) => {
-		const override = i18n[key];
-		if (override === undefined) return defaultValue;
-		if (!interpolations) return override;
-		// Same interpolation syntax as MDXEditor's default (`{{name}}`).
-		return override.replace(/\{\{(\w+)\}\}/g, (_match, name: string) => {
-			const value = interpolations[name];
-			return value == null ? "" : String(value);
-		});
-	};
+    if (translation) return translation;
+    if (!i18n) return undefined;
+    return (key, defaultValue, interpolations) => {
+        const override = i18n[key];
+        if (override === undefined) return defaultValue;
+        if (!interpolations) return override;
+        // Same interpolation syntax as MDXEditor's default (`{{name}}`).
+        return override.replace(/\{\{(\w+)\}\}/g, (_match, name: string) => {
+            const value = interpolations[name];
+            return value == null ? "" : String(value);
+        });
+    };
 }
 
 export function HagakiEditorRoot(props: HagakiEditorRootProps) {
-	const {
-		markdown,
-		onChange,
-		editorRef,
-		children,
-		plugins,
-		className,
-		contentEditableClassName,
-		suppressHtmlProcessing = true,
-		onError,
-		onInsertImage,
-		translation,
-		i18n,
-	} = props;
+    const {
+        markdown,
+        onChange,
+        editorRef,
+        children,
+        plugins,
+        className,
+        contentEditableClassName,
+        suppressHtmlProcessing = true,
+        onError,
+        onInsertImage,
+        translation,
+        i18n,
+    } = props;
 
-	const slots = plugins ? {} : resolveSlots(children);
-	const finalPlugins = plugins ?? buildPlugins(props, slots);
-	const finalTranslation = resolveTranslation(translation, i18n);
-	// Carries the MDX image-flow insert handler down to the toolbar button
-	// regardless of whether plugins were overridden.
-	const imageComponentContext = useMemo(
-		() => ({ onInsertImage, onError }),
-		[onInsertImage, onError],
-	);
+    const slots = plugins ? {} : resolveSlots(children);
+    const finalPlugins = plugins ?? buildPlugins(props, slots);
+    const finalTranslation = resolveTranslation(translation, i18n);
+    // Carries the MDX image-flow insert handler down to the toolbar button
+    // regardless of whether plugins were overridden.
+    const imageComponentContext = useMemo(
+        () => ({ onInsertImage, onError }),
+        [onInsertImage, onError],
+    );
 
-	return (
-		<ImageComponentContext.Provider value={imageComponentContext}>
-			<MDXEditor
-				ref={editorRef}
-				markdown={markdown}
-				onChange={onChange}
-				onError={onError}
-				suppressHtmlProcessing={suppressHtmlProcessing}
-				plugins={finalPlugins.length > 0 ? finalPlugins : defaultPlugins()}
-				className={className}
-				contentEditableClassName={
-					slots.contentClassName ?? contentEditableClassName
-				}
-				translation={finalTranslation}
-			/>
-		</ImageComponentContext.Provider>
-	);
+    return (
+        <ImageComponentContext.Provider value={imageComponentContext}>
+            <MDXEditor
+                ref={editorRef}
+                markdown={markdown}
+                onChange={onChange}
+                onError={onError}
+                suppressHtmlProcessing={suppressHtmlProcessing}
+                plugins={
+                    finalPlugins.length > 0 ? finalPlugins : defaultPlugins()
+                }
+                className={className}
+                contentEditableClassName={
+                    slots.contentClassName ?? contentEditableClassName
+                }
+                translation={finalTranslation}
+            />
+        </ImageComponentContext.Provider>
+    );
 }
 
 export type HagakiEditorProps = HagakiEditorRootProps;

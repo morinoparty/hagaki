@@ -13,26 +13,26 @@
  * example a literal `100%`) is used as is.
  */
 export function toUrlSlug(str: string): string {
-	return encodeURIComponent(
-		safeDecode(str)
-			.normalize("NFKC")
-			.replace(/[Ａ-Ｚａ-ｚ０-９]/g, (s) =>
-				String.fromCharCode(s.charCodeAt(0) - 0xfee0),
-			)
-			.replace(/\s+/g, "-")
-			.replace(/[\u3000]/g, "-")
-			.replace(/--+/g, "-")
-			.replace(/^-+|-+$/g, "")
-			.toLowerCase(),
-	);
+    return encodeURIComponent(
+        safeDecode(str)
+            .normalize("NFKC")
+            .replace(/[Ａ-Ｚａ-ｚ０-９]/g, (s) =>
+                String.fromCharCode(s.charCodeAt(0) - 0xfee0),
+            )
+            .replace(/\s+/g, "-")
+            .replace(/[\u3000]/g, "-")
+            .replace(/--+/g, "-")
+            .replace(/^-+|-+$/g, "")
+            .toLowerCase(),
+    );
 }
 
 /** Percent-decode `str`, or return it unchanged when it is malformed. */
 export function safeDecode(str: string): string {
-	try {
-		return decodeURIComponent(str);
-	} catch (e) {
-		if (e instanceof URIError) return str;
-		throw e;
-	}
+    try {
+        return decodeURIComponent(str);
+    } catch (e) {
+        if (e instanceof URIError) return str;
+        throw e;
+    }
 }

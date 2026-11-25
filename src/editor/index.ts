@@ -2,41 +2,41 @@
 
 import type { ComponentType } from "react";
 import {
-	Bold,
-	BulletList,
-	CheckList,
-	type HagakiEditorToolbarButtonProps,
-	InlineCode,
-	InsertImageComponentButton,
-	type InsertImageComponentButtonProps,
-	InsertImageFileButton,
-	type InsertImageFileButtonProps,
-	InsertImageTrigger,
-	Italic,
-	NumberedList,
-	Redo,
-	Strikethrough,
-	Underline,
-	Undo,
+    Bold,
+    BulletList,
+    CheckList,
+    type HagakiEditorToolbarButtonProps,
+    InlineCode,
+    InsertImageComponentButton,
+    type InsertImageComponentButtonProps,
+    InsertImageFileButton,
+    type InsertImageFileButtonProps,
+    InsertImageTrigger,
+    Italic,
+    NumberedList,
+    Redo,
+    Strikethrough,
+    Underline,
+    Undo,
 } from "./buttons.js";
 import { Content, type HagakiEditorContentProps } from "./Content.js";
 import { HagakiEditorRoot, type HagakiEditorRootProps } from "./Editor.js";
 import { type HagakiEditorToolbarProps, Toolbar } from "./Toolbar.js";
 import {
-	BlockTypeSelect,
-	BoldItalicUnderlineToggles,
-	CodeToggle,
-	ConditionalContents,
-	CreateLink,
-	DiffSourceToggleWrapper,
-	InsertAdmonition,
-	InsertCodeBlock,
-	InsertImage as InsertImageRoot,
-	InsertTable,
-	InsertThematicBreak,
-	ListsToggle,
-	Separator,
-	UndoRedo,
+    BlockTypeSelect,
+    BoldItalicUnderlineToggles,
+    CodeToggle,
+    ConditionalContents,
+    CreateLink,
+    DiffSourceToggleWrapper,
+    InsertAdmonition,
+    InsertCodeBlock,
+    InsertImage as InsertImageRoot,
+    InsertTable,
+    InsertThematicBreak,
+    ListsToggle,
+    Separator,
+    UndoRedo,
 } from "./toolbar-buttons.js";
 
 /**
@@ -63,51 +63,51 @@ type ToolbarButton = ComponentType<any>;
  *   without it).
  */
 type InsertImageComponent = ToolbarButton & {
-	Trigger: ComponentType<HagakiEditorToolbarButtonProps>;
-	FileButton: ComponentType<InsertImageFileButtonProps>;
-	ComponentButton: ComponentType<InsertImageComponentButtonProps>;
+    Trigger: ComponentType<HagakiEditorToolbarButtonProps>;
+    FileButton: ComponentType<InsertImageFileButtonProps>;
+    ComponentButton: ComponentType<InsertImageComponentButtonProps>;
 };
 
 const InsertImage = Object.assign(InsertImageRoot, {
-	Trigger: InsertImageTrigger,
-	FileButton: InsertImageFileButton,
-	ComponentButton: InsertImageComponentButton,
+    Trigger: InsertImageTrigger,
+    FileButton: InsertImageFileButton,
+    ComponentButton: InsertImageComponentButton,
 }) as InsertImageComponent;
 
 type HagakiEditorComponent = ComponentType<HagakiEditorRootProps> & {
-	Toolbar: ComponentType<HagakiEditorToolbarProps>;
-	Content: ComponentType<HagakiEditorContentProps>;
+    Toolbar: ComponentType<HagakiEditorToolbarProps>;
+    Content: ComponentType<HagakiEditorContentProps>;
 
-	// Individually-styleable toolbar buttons (built on MDXEditor's primitives).
-	Undo: ComponentType<HagakiEditorToolbarButtonProps>;
-	Redo: ComponentType<HagakiEditorToolbarButtonProps>;
-	Bold: ComponentType<HagakiEditorToolbarButtonProps>;
-	Italic: ComponentType<HagakiEditorToolbarButtonProps>;
-	Underline: ComponentType<HagakiEditorToolbarButtonProps>;
-	Strikethrough: ComponentType<HagakiEditorToolbarButtonProps>;
-	InlineCode: ComponentType<HagakiEditorToolbarButtonProps>;
-	BulletList: ComponentType<HagakiEditorToolbarButtonProps>;
-	NumberedList: ComponentType<HagakiEditorToolbarButtonProps>;
-	CheckList: ComponentType<HagakiEditorToolbarButtonProps>;
+    // Individually-styleable toolbar buttons (built on MDXEditor's primitives).
+    Undo: ComponentType<HagakiEditorToolbarButtonProps>;
+    Redo: ComponentType<HagakiEditorToolbarButtonProps>;
+    Bold: ComponentType<HagakiEditorToolbarButtonProps>;
+    Italic: ComponentType<HagakiEditorToolbarButtonProps>;
+    Underline: ComponentType<HagakiEditorToolbarButtonProps>;
+    Strikethrough: ComponentType<HagakiEditorToolbarButtonProps>;
+    InlineCode: ComponentType<HagakiEditorToolbarButtonProps>;
+    BulletList: ComponentType<HagakiEditorToolbarButtonProps>;
+    NumberedList: ComponentType<HagakiEditorToolbarButtonProps>;
+    CheckList: ComponentType<HagakiEditorToolbarButtonProps>;
 
-	// Composable image controls.
-	InsertImage: InsertImageComponent;
+    // Composable image controls.
+    InsertImage: InsertImageComponent;
 
-	// Re-exports from MDXEditor — bundle toggles, dropdowns, single buttons
-	// that don't decompose further.
-	BlockTypeSelect: ToolbarButton;
-	BoldItalicUnderlineToggles: ToolbarButton;
-	CodeToggle: ToolbarButton;
-	ConditionalContents: ToolbarButton;
-	CreateLink: ToolbarButton;
-	DiffSourceToggleWrapper: ToolbarButton;
-	InsertAdmonition: ToolbarButton;
-	InsertCodeBlock: ToolbarButton;
-	InsertTable: ToolbarButton;
-	InsertThematicBreak: ToolbarButton;
-	ListsToggle: ToolbarButton;
-	Separator: ToolbarButton;
-	UndoRedo: ToolbarButton;
+    // Re-exports from MDXEditor — bundle toggles, dropdowns, single buttons
+    // that don't decompose further.
+    BlockTypeSelect: ToolbarButton;
+    BoldItalicUnderlineToggles: ToolbarButton;
+    CodeToggle: ToolbarButton;
+    ConditionalContents: ToolbarButton;
+    CreateLink: ToolbarButton;
+    DiffSourceToggleWrapper: ToolbarButton;
+    InsertAdmonition: ToolbarButton;
+    InsertCodeBlock: ToolbarButton;
+    InsertTable: ToolbarButton;
+    InsertThematicBreak: ToolbarButton;
+    ListsToggle: ToolbarButton;
+    Separator: ToolbarButton;
+    UndoRedo: ToolbarButton;
 };
 
 /**
@@ -129,57 +129,57 @@ type HagakiEditorComponent = ComponentType<HagakiEditorRootProps> & {
  * </HagakiEditor>
  */
 export const HagakiEditor = Object.assign(HagakiEditorRoot, {
-	Toolbar,
-	Content,
+    Toolbar,
+    Content,
 
-	Undo,
-	Redo,
-	Bold,
-	Italic,
-	Underline,
-	Strikethrough,
-	InlineCode,
-	BulletList,
-	NumberedList,
-	CheckList,
-	InsertImage,
+    Undo,
+    Redo,
+    Bold,
+    Italic,
+    Underline,
+    Strikethrough,
+    InlineCode,
+    BulletList,
+    NumberedList,
+    CheckList,
+    InsertImage,
 
-	BlockTypeSelect,
-	BoldItalicUnderlineToggles,
-	CodeToggle,
-	ConditionalContents,
-	CreateLink,
-	DiffSourceToggleWrapper,
-	InsertAdmonition,
-	InsertCodeBlock,
-	InsertTable,
-	InsertThematicBreak,
-	ListsToggle,
-	Separator,
-	UndoRedo,
+    BlockTypeSelect,
+    BoldItalicUnderlineToggles,
+    CodeToggle,
+    ConditionalContents,
+    CreateLink,
+    DiffSourceToggleWrapper,
+    InsertAdmonition,
+    InsertCodeBlock,
+    InsertTable,
+    InsertThematicBreak,
+    ListsToggle,
+    Separator,
+    UndoRedo,
 }) as HagakiEditorComponent;
 
 export type {
-	MDXEditorMethods,
-	RealmPlugin,
-	Translation,
+    MDXEditorMethods,
+    RealmPlugin,
+    Translation,
 } from "@mdxeditor/editor";
 export type {
-	HagakiEditorToolbarButtonProps,
-	InsertImageComponentButtonProps,
-	InsertImageFileButtonProps,
+    HagakiEditorToolbarButtonProps,
+    InsertImageComponentButtonProps,
+    InsertImageFileButtonProps,
 } from "./buttons.js";
 export type { HagakiEditorContentProps } from "./Content.js";
 export type { HagakiEditorProps, HagakiEditorRootProps } from "./Editor.js";
 export {
-	createImageComponentDescriptor,
-	type ImageComponentConfig,
-	ImageComponentContext,
-	type ImageComponentContextValue,
+    createImageComponentDescriptor,
+    type ImageComponentConfig,
+    ImageComponentContext,
+    type ImageComponentContextValue,
 } from "./image-jsx.js";
 export {
-	type DefaultPluginsOptions,
-	defaultPlugins,
-	defaultToolbarContents,
+    type DefaultPluginsOptions,
+    defaultPlugins,
+    defaultToolbarContents,
 } from "./plugins.js";
 export type { HagakiEditorToolbarProps } from "./Toolbar.js";
