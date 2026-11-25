@@ -7,9 +7,9 @@ const ABSOLUTE_URL_PATTERN = /^[a-z][a-z0-9+.-]*:/i;
  * be called unconditionally.
  */
 export function resolveCdnUrl(src: string, cdnBaseUrl: string): string {
-	if (ABSOLUTE_URL_PATTERN.test(src)) return src;
-	if (!cdnBaseUrl) return src;
-	const base = cdnBaseUrl.replace(/\/$/, "");
-	const path = src.startsWith("/") ? src : `/${src}`;
-	return `${base}${path}`;
+    if (ABSOLUTE_URL_PATTERN.test(src)) return src;
+    if (!cdnBaseUrl) return src;
+    const base = cdnBaseUrl.replace(/\/$/, "");
+    const path = src.startsWith("/") ? src : `/${src}`;
+    return `${base}${path}`;
 }

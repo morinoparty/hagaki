@@ -3,53 +3,53 @@ name: Publish package
 # GitHub Release を publish したときだけ @morinoparty/hagaki を npm (registry.npmjs.org) に公開する。
 # version はリリースのタグ (v0.2.0) から決める。package.json の version は据え置き。
 on:
-  release:
-    types: [published]
+    release:
+        types: [published]
 
 permissions:
-  contents: read
-  # npm の trusted publishing (OIDC) で使う。npm のトークンは secret に置かない
-  id-token: write
+    contents: read
+    # npm の trusted publishing (OIDC) で使う。npm のトークンは secret に置かない
+    id-token: write
 
 jobs:
-  publish:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
+    publish:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
 
-      # pnpm (package.json の packageManager) と Node (.node-version) をまとめて入れる。
-      # pnpm/action-setup の self-installer (npm 経由) を使わないので速い
-      - uses: pnpm/setup@v3
-        with:
-          cache: true # pnpm store を lockfile ごとにキャッシュ
-          install: false # install は下で --frozen-lockfile 付きで明示的に行う
+            # pnpm (package.json の packageManager) と Node (.node-version) をまとめて入れる。
+            # pnpm/action-setup の self-installer (npm 経由) を使わないので速い
+            - uses: pnpm/setup@v3
+              with:
+                  cache: true # pnpm store を lockfile ごとにキャッシュ
+                  install: false # install は下で --frozen-lockfile 付きで明示的に行う
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm run typecheck
-      - run: pnpm run check:ci
-      - run: pnpm run build
+            - run: pnpm install --frozen-lockfile
+            - run: pnpm run typecheck
+            - run: pnpm run check:ci
+            - run: pnpm run build
 
-      - name: Set version from the release tag
-        env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
-        run: |
-          VERSION="${RELEASE_TAG#v}"
-          if [ -z "$VERSION" ]; then
-            echo "::error::release tag is empty"
-            exit 1
-          fi
-          node -e '
-            const fs = require("fs");
-            const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
-            pkg.version = process.argv[1];
-            fs.writeFileSync("package.json", `${JSON.stringify(pkg, null, 4)}\n`);
-          ' "$VERSION"
-          echo "publishing @morinoparty/hagaki@$VERSION"
+            - name: Set version from the release tag
+              env:
+                  RELEASE_TAG: ${{ github.event.release.tag_name }}
+              run: |
+                  VERSION="${RELEASE_TAG#v}"
+                  if [ -z "$VERSION" ]; then
+                    echo "::error::release tag is empty"
+                    exit 1
+                  fi
+                  node -e '
+                    const fs = require("fs");
+                    const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+                    pkg.version = process.argv[1];
+                    fs.writeFileSync("package.json", `${JSON.stringify(pkg, null, 4)}\n`);
+                  ' "$VERSION"
+                  echo "publishing @morinoparty/hagaki@$VERSION"
 
-      # 公開先は package.json の publishConfig.registry (npm)。
-      # 認証は trusted publishing: pnpm が GitHub の OIDC トークンを npm のトークンと交換する。
-      # ~/.npmrc にトークンがあると OIDC を使わないので、認証設定は書かない。
-      # npm 側でこのリポジトリの publish.yml を trusted publisher として登録しておく必要がある。
-      # provenance (SLSA v1 のビルド来歴) を明示的に付けて、npm 上で Actions 由来であることを検証できるようにする
-      - name: Publish to npm
-        run: pnpm publish --no-git-checks --provenance
+            # 公開先は package.json の publishConfig.registry (npm)。
+            # 認証は trusted publishing: pnpm が GitHub の OIDC トークンを npm のトークンと交換する。
+            # ~/.npmrc にトークンがあると OIDC を使わないので、認証設定は書かない。
+            # npm 側でこのリポジトリの publish.yml を trusted publisher として登録しておく必要がある。
+            # provenance (SLSA v1 のビルド来歴) を明示的に付けて、npm 上で Actions 由来であることを検証できるようにする
+            - name: Publish to npm
+              run: pnpm publish --no-git-checks --provenance

@@ -1,27 +1,27 @@
 export interface Committer {
-	name: string;
-	email: string;
+    name: string;
+    email: string;
 }
 
 export interface MakeCommitterInput {
-	name: string;
-	/**
-	 * Stable user id to embed in the committer name — whatever the app uses as
-	 * the user's identity (typically better-auth's `session.user.id`). hagaki
-	 * doesn't interpret it; it only has to survive the round trip through
-	 * git and {@link userIdFromCommitterName}, so with the default format it
-	 * must not contain parentheses, whitespace, `<`, `>` or control characters.
-	 */
-	id?: string;
-	email?: string;
-	defaultEmail?: string;
-	/**
-	 * Customize how the committer name is rendered.
-	 * Default: includes the id in parentheses when present, e.g. `"alice (id)"`.
-	 * A custom format is not understood by {@link userIdFromCommitterName}, so
-	 * the generated history won't carry a `userId` for those commits.
-	 */
-	nameFormat?: (input: { id?: string; name: string }) => string;
+    name: string;
+    /**
+     * Stable user id to embed in the committer name — whatever the app uses as
+     * the user's identity (typically better-auth's `session.user.id`). hagaki
+     * doesn't interpret it; it only has to survive the round trip through
+     * git and {@link userIdFromCommitterName}, so with the default format it
+     * must not contain parentheses, whitespace, `<`, `>` or control characters.
+     */
+    id?: string;
+    email?: string;
+    defaultEmail?: string;
+    /**
+     * Customize how the committer name is rendered.
+     * Default: includes the id in parentheses when present, e.g. `"alice (id)"`.
+     * A custom format is not understood by {@link userIdFromCommitterName}, so
+     * the generated history won't carry a `userId` for those commits.
+     */
+    nameFormat?: (input: { id?: string; name: string }) => string;
 }
 
 /**
@@ -39,13 +39,13 @@ const COMMITTER_ID = /^[^()<>\s\x00-\x1f\x7f]+$/;
 const COMMITTER_ID_SUFFIX = /\(([^()<>\s\x00-\x1f\x7f]+)\)$/;
 
 const defaultNameFormat = (input: { id?: string; name: string }) => {
-	if (!input.id) return input.name;
-	if (!COMMITTER_ID.test(input.id)) {
-		throw new Error(
-			`hagaki: committer id "${input.id}" can't contain parentheses, whitespace, '<', '>' or control characters`,
-		);
-	}
-	return `${input.name} (${input.id})`;
+    if (!input.id) return input.name;
+    if (!COMMITTER_ID.test(input.id)) {
+        throw new Error(
+            `hagaki: committer id "${input.id}" can't contain parentheses, whitespace, '<', '>' or control characters`,
+        );
+    }
+    return `${input.name} (${input.id})`;
 };
 
 /**
@@ -61,19 +61,19 @@ const defaultNameFormat = (input: { id?: string; name: string }) => {
  * reads back as `<token>`.
  */
 export function userIdFromCommitterName(name: string): string | null {
-	return COMMITTER_ID_SUFFIX.exec(name.trimEnd())?.[1] ?? null;
+    return COMMITTER_ID_SUFFIX.exec(name.trimEnd())?.[1] ?? null;
 }
 
 export function makeCommitter(input: MakeCommitterInput): Committer {
-	const email = input.email ?? input.defaultEmail;
-	if (!email) {
-		throw new Error(
-			"hagaki: makeCommitter requires either `email` or `defaultEmail`",
-		);
-	}
-	const formatter = input.nameFormat ?? defaultNameFormat;
-	return {
-		name: formatter({ id: input.id, name: input.name }),
-		email,
-	};
+    const email = input.email ?? input.defaultEmail;
+    if (!email) {
+        throw new Error(
+            "hagaki: makeCommitter requires either `email` or `defaultEmail`",
+        );
+    }
+    const formatter = input.nameFormat ?? defaultNameFormat;
+    return {
+        name: formatter({ id: input.id, name: input.name }),
+        email,
+    };
 }

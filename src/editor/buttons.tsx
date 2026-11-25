@@ -1,31 +1,31 @@
 "use client";
 import {
-	activeEditor$,
-	applyFormat$,
-	applyListType$,
-	currentFormat$,
-	currentListType$,
-	editorInTable$,
-	iconComponentFor$,
-	insertImage$,
-	insertJsx$,
-	openNewImageDialog$,
-	readOnly$,
-	Button as ToolbarButton,
+    activeEditor$,
+    applyFormat$,
+    applyListType$,
+    currentFormat$,
+    currentListType$,
+    editorInTable$,
+    iconComponentFor$,
+    insertImage$,
+    insertJsx$,
+    openNewImageDialog$,
+    readOnly$,
+    Button as ToolbarButton,
 } from "@mdxeditor/editor";
 import { useCellValue, useCellValues, usePublisher } from "@mdxeditor/gurx";
 import {
-	CAN_REDO_COMMAND,
-	CAN_UNDO_COMMAND,
-	COMMAND_PRIORITY_CRITICAL,
-	REDO_COMMAND,
-	UNDO_COMMAND,
+    CAN_REDO_COMMAND,
+    CAN_UNDO_COMMAND,
+    COMMAND_PRIORITY_CRITICAL,
+    REDO_COMMAND,
+    UNDO_COMMAND,
 } from "lexical";
 import { type ReactNode, useContext, useEffect, useRef, useState } from "react";
 import { blurhashToBase64 } from "../markdown/blurhash64.js";
 import {
-	IMAGE_COMPONENT_NAME,
-	type ImageComponentAttrs,
+    IMAGE_COMPONENT_NAME,
+    type ImageComponentAttrs,
 } from "../markdown/image-jsx.js";
 import { ImageComponentContext } from "./image-jsx.js";
 
@@ -38,10 +38,10 @@ const IS_UNDERLINE = 1 << 3;
 const IS_CODE = 1 << 4;
 
 export interface HagakiEditorToolbarButtonProps {
-	className?: string;
-	/** Override the default icon. */
-	children?: ReactNode;
-	title?: string;
+    className?: string;
+    /** Override the default icon. */
+    children?: ReactNode;
+    title?: string;
 }
 
 // MDXEditor's IconKey is a union of all known names; passing a string we know
@@ -52,250 +52,254 @@ const icon = (fn: (name: any) => ReactNode, name: string) => fn(name);
 // ─── Undo / Redo ─────────────────────────────────────────────────────────
 
 export function Undo(props: HagakiEditorToolbarButtonProps) {
-	const activeEditor = useCellValue(activeEditor$);
-	const [readOnly, iconFor] = useCellValues(readOnly$, iconComponentFor$);
-	const [canUndo, setCanUndo] = useState(false);
-	useEffect(() => {
-		if (!activeEditor) return;
-		return activeEditor.registerCommand(
-			CAN_UNDO_COMMAND,
-			(payload: boolean) => {
-				setCanUndo(payload);
-				return false;
-			},
-			COMMAND_PRIORITY_CRITICAL,
-		);
-	}, [activeEditor]);
-	return (
-		<ToolbarButton
-			className={props.className}
-			disabled={readOnly || !canUndo}
-			title={props.title ?? "Undo"}
-			onClick={() => activeEditor?.dispatchCommand(UNDO_COMMAND, undefined)}
-		>
-			{props.children ?? icon(iconFor, "undo")}
-		</ToolbarButton>
-	);
+    const activeEditor = useCellValue(activeEditor$);
+    const [readOnly, iconFor] = useCellValues(readOnly$, iconComponentFor$);
+    const [canUndo, setCanUndo] = useState(false);
+    useEffect(() => {
+        if (!activeEditor) return;
+        return activeEditor.registerCommand(
+            CAN_UNDO_COMMAND,
+            (payload: boolean) => {
+                setCanUndo(payload);
+                return false;
+            },
+            COMMAND_PRIORITY_CRITICAL,
+        );
+    }, [activeEditor]);
+    return (
+        <ToolbarButton
+            className={props.className}
+            disabled={readOnly || !canUndo}
+            title={props.title ?? "Undo"}
+            onClick={() =>
+                activeEditor?.dispatchCommand(UNDO_COMMAND, undefined)
+            }
+        >
+            {props.children ?? icon(iconFor, "undo")}
+        </ToolbarButton>
+    );
 }
 
 export function Redo(props: HagakiEditorToolbarButtonProps) {
-	const activeEditor = useCellValue(activeEditor$);
-	const [readOnly, iconFor] = useCellValues(readOnly$, iconComponentFor$);
-	const [canRedo, setCanRedo] = useState(false);
-	useEffect(() => {
-		if (!activeEditor) return;
-		return activeEditor.registerCommand(
-			CAN_REDO_COMMAND,
-			(payload: boolean) => {
-				setCanRedo(payload);
-				return false;
-			},
-			COMMAND_PRIORITY_CRITICAL,
-		);
-	}, [activeEditor]);
-	return (
-		<ToolbarButton
-			className={props.className}
-			disabled={readOnly || !canRedo}
-			title={props.title ?? "Redo"}
-			onClick={() => activeEditor?.dispatchCommand(REDO_COMMAND, undefined)}
-		>
-			{props.children ?? icon(iconFor, "redo")}
-		</ToolbarButton>
-	);
+    const activeEditor = useCellValue(activeEditor$);
+    const [readOnly, iconFor] = useCellValues(readOnly$, iconComponentFor$);
+    const [canRedo, setCanRedo] = useState(false);
+    useEffect(() => {
+        if (!activeEditor) return;
+        return activeEditor.registerCommand(
+            CAN_REDO_COMMAND,
+            (payload: boolean) => {
+                setCanRedo(payload);
+                return false;
+            },
+            COMMAND_PRIORITY_CRITICAL,
+        );
+    }, [activeEditor]);
+    return (
+        <ToolbarButton
+            className={props.className}
+            disabled={readOnly || !canRedo}
+            title={props.title ?? "Redo"}
+            onClick={() =>
+                activeEditor?.dispatchCommand(REDO_COMMAND, undefined)
+            }
+        >
+            {props.children ?? icon(iconFor, "redo")}
+        </ToolbarButton>
+    );
 }
 
 // ─── Inline format toggles (Bold / Italic / Underline / Strikethrough / InlineCode) ──
 
 interface FormatButtonConfig {
-	flag: number;
-	name: "bold" | "italic" | "underline" | "strikethrough" | "code";
-	iconName: string;
-	defaultTitle: string;
+    flag: number;
+    name: "bold" | "italic" | "underline" | "strikethrough" | "code";
+    iconName: string;
+    defaultTitle: string;
 }
 
 function FormatButton(
-	props: HagakiEditorToolbarButtonProps & { config: FormatButtonConfig },
+    props: HagakiEditorToolbarButtonProps & { config: FormatButtonConfig },
 ) {
-	const { config } = props;
-	const [currentFormat, iconFor, readOnly] = useCellValues(
-		currentFormat$,
-		iconComponentFor$,
-		readOnly$,
-	);
-	const applyFormat = usePublisher(applyFormat$);
-	const active = (currentFormat & config.flag) !== 0;
-	return (
-		<ToolbarButton
-			className={props.className}
-			disabled={readOnly}
-			data-state={active ? "on" : "off"}
-			title={props.title ?? config.defaultTitle}
-			onClick={() => applyFormat(config.name)}
-		>
-			{props.children ?? icon(iconFor, config.iconName)}
-		</ToolbarButton>
-	);
+    const { config } = props;
+    const [currentFormat, iconFor, readOnly] = useCellValues(
+        currentFormat$,
+        iconComponentFor$,
+        readOnly$,
+    );
+    const applyFormat = usePublisher(applyFormat$);
+    const active = (currentFormat & config.flag) !== 0;
+    return (
+        <ToolbarButton
+            className={props.className}
+            disabled={readOnly}
+            data-state={active ? "on" : "off"}
+            title={props.title ?? config.defaultTitle}
+            onClick={() => applyFormat(config.name)}
+        >
+            {props.children ?? icon(iconFor, config.iconName)}
+        </ToolbarButton>
+    );
 }
 
 export function Bold(props: HagakiEditorToolbarButtonProps) {
-	return (
-		<FormatButton
-			{...props}
-			config={{
-				flag: IS_BOLD,
-				name: "bold",
-				iconName: "format_bold",
-				defaultTitle: "Bold",
-			}}
-		/>
-	);
+    return (
+        <FormatButton
+            {...props}
+            config={{
+                flag: IS_BOLD,
+                name: "bold",
+                iconName: "format_bold",
+                defaultTitle: "Bold",
+            }}
+        />
+    );
 }
 export function Italic(props: HagakiEditorToolbarButtonProps) {
-	return (
-		<FormatButton
-			{...props}
-			config={{
-				flag: IS_ITALIC,
-				name: "italic",
-				iconName: "format_italic",
-				defaultTitle: "Italic",
-			}}
-		/>
-	);
+    return (
+        <FormatButton
+            {...props}
+            config={{
+                flag: IS_ITALIC,
+                name: "italic",
+                iconName: "format_italic",
+                defaultTitle: "Italic",
+            }}
+        />
+    );
 }
 export function Underline(props: HagakiEditorToolbarButtonProps) {
-	return (
-		<FormatButton
-			{...props}
-			config={{
-				flag: IS_UNDERLINE,
-				name: "underline",
-				iconName: "format_underlined",
-				defaultTitle: "Underline",
-			}}
-		/>
-	);
+    return (
+        <FormatButton
+            {...props}
+            config={{
+                flag: IS_UNDERLINE,
+                name: "underline",
+                iconName: "format_underlined",
+                defaultTitle: "Underline",
+            }}
+        />
+    );
 }
 export function Strikethrough(props: HagakiEditorToolbarButtonProps) {
-	return (
-		<FormatButton
-			{...props}
-			config={{
-				flag: IS_STRIKETHROUGH,
-				name: "strikethrough",
-				iconName: "strikeThrough",
-				defaultTitle: "Strikethrough",
-			}}
-		/>
-	);
+    return (
+        <FormatButton
+            {...props}
+            config={{
+                flag: IS_STRIKETHROUGH,
+                name: "strikethrough",
+                iconName: "strikeThrough",
+                defaultTitle: "Strikethrough",
+            }}
+        />
+    );
 }
 export function InlineCode(props: HagakiEditorToolbarButtonProps) {
-	return (
-		<FormatButton
-			{...props}
-			config={{
-				flag: IS_CODE,
-				name: "code",
-				iconName: "code",
-				defaultTitle: "Inline code",
-			}}
-		/>
-	);
+    return (
+        <FormatButton
+            {...props}
+            config={{
+                flag: IS_CODE,
+                name: "code",
+                iconName: "code",
+                defaultTitle: "Inline code",
+            }}
+        />
+    );
 }
 
 // ─── List buttons ────────────────────────────────────────────────────────
 
 interface ListButtonConfig {
-	value: "bullet" | "number" | "check";
-	iconName: string;
-	defaultTitle: string;
+    value: "bullet" | "number" | "check";
+    iconName: string;
+    defaultTitle: string;
 }
 
 function ListButton(
-	props: HagakiEditorToolbarButtonProps & { config: ListButtonConfig },
+    props: HagakiEditorToolbarButtonProps & { config: ListButtonConfig },
 ) {
-	const { config } = props;
-	const [currentListType, iconFor, inTable, readOnly] = useCellValues(
-		currentListType$,
-		iconComponentFor$,
-		editorInTable$,
-		readOnly$,
-	);
-	const applyListType = usePublisher(applyListType$);
-	const active = currentListType === config.value;
-	return (
-		<ToolbarButton
-			className={props.className}
-			disabled={readOnly || inTable}
-			data-state={active ? "on" : "off"}
-			title={props.title ?? config.defaultTitle}
-			onClick={() => applyListType(active ? "" : config.value)}
-		>
-			{props.children ?? icon(iconFor, config.iconName)}
-		</ToolbarButton>
-	);
+    const { config } = props;
+    const [currentListType, iconFor, inTable, readOnly] = useCellValues(
+        currentListType$,
+        iconComponentFor$,
+        editorInTable$,
+        readOnly$,
+    );
+    const applyListType = usePublisher(applyListType$);
+    const active = currentListType === config.value;
+    return (
+        <ToolbarButton
+            className={props.className}
+            disabled={readOnly || inTable}
+            data-state={active ? "on" : "off"}
+            title={props.title ?? config.defaultTitle}
+            onClick={() => applyListType(active ? "" : config.value)}
+        >
+            {props.children ?? icon(iconFor, config.iconName)}
+        </ToolbarButton>
+    );
 }
 
 export function BulletList(props: HagakiEditorToolbarButtonProps) {
-	return (
-		<ListButton
-			{...props}
-			config={{
-				value: "bullet",
-				iconName: "format_list_bulleted",
-				defaultTitle: "Bulleted list",
-			}}
-		/>
-	);
+    return (
+        <ListButton
+            {...props}
+            config={{
+                value: "bullet",
+                iconName: "format_list_bulleted",
+                defaultTitle: "Bulleted list",
+            }}
+        />
+    );
 }
 export function NumberedList(props: HagakiEditorToolbarButtonProps) {
-	return (
-		<ListButton
-			{...props}
-			config={{
-				value: "number",
-				iconName: "format_list_numbered",
-				defaultTitle: "Numbered list",
-			}}
-		/>
-	);
+    return (
+        <ListButton
+            {...props}
+            config={{
+                value: "number",
+                iconName: "format_list_numbered",
+                defaultTitle: "Numbered list",
+            }}
+        />
+    );
 }
 export function CheckList(props: HagakiEditorToolbarButtonProps) {
-	return (
-		<ListButton
-			{...props}
-			config={{
-				value: "check",
-				iconName: "format_list_checked",
-				defaultTitle: "Check list",
-			}}
-		/>
-	);
+    return (
+        <ListButton
+            {...props}
+            config={{
+                value: "check",
+                iconName: "format_list_checked",
+                defaultTitle: "Check list",
+            }}
+        />
+    );
 }
 
 // ─── Image controls (composable replacement for InsertImage) ─────────────
 
 /** Opens MDXEditor's built-in image dialog (URL + alt + optional upload). */
 export function InsertImageTrigger(props: HagakiEditorToolbarButtonProps) {
-	const openDialog = usePublisher(openNewImageDialog$);
-	const [iconFor, readOnly] = useCellValues(iconComponentFor$, readOnly$);
-	return (
-		<ToolbarButton
-			className={props.className}
-			disabled={readOnly}
-			title={props.title ?? "Insert image"}
-			onClick={() => openDialog()}
-		>
-			{props.children ?? icon(iconFor, "add_photo")}
-		</ToolbarButton>
-	);
+    const openDialog = usePublisher(openNewImageDialog$);
+    const [iconFor, readOnly] = useCellValues(iconComponentFor$, readOnly$);
+    return (
+        <ToolbarButton
+            className={props.className}
+            disabled={readOnly}
+            title={props.title ?? "Insert image"}
+            onClick={() => openDialog()}
+        >
+            {props.children ?? icon(iconFor, "add_photo")}
+        </ToolbarButton>
+    );
 }
 
 export interface InsertImageFileButtonProps
-	extends HagakiEditorToolbarButtonProps {
-	/** `<input type="file">` accept attribute. Defaults to `image/*`. */
-	accept?: string;
+    extends HagakiEditorToolbarButtonProps {
+    /** `<input type="file">` accept attribute. Defaults to `image/*`. */
+    accept?: string;
 }
 
 /**
@@ -304,38 +308,38 @@ export interface InsertImageFileButtonProps
  * Useful when you want a "drop a file → image appears" UX.
  */
 export function InsertImageFileButton(props: InsertImageFileButtonProps) {
-	const insert = usePublisher(insertImage$);
-	const [iconFor, readOnly] = useCellValues(iconComponentFor$, readOnly$);
-	const inputRef = useRef<HTMLInputElement>(null);
-	return (
-		<>
-			<ToolbarButton
-				className={props.className}
-				disabled={readOnly}
-				title={props.title ?? "Upload image"}
-				onClick={() => inputRef.current?.click()}
-			>
-				{props.children ?? icon(iconFor, "add_photo")}
-			</ToolbarButton>
-			<input
-				ref={inputRef}
-				type="file"
-				accept={props.accept ?? "image/*"}
-				style={{ display: "none" }}
-				onChange={(e) => {
-					const file = e.target.files?.[0];
-					if (file) insert({ file, altText: "", title: "" });
-					e.target.value = "";
-				}}
-			/>
-		</>
-	);
+    const insert = usePublisher(insertImage$);
+    const [iconFor, readOnly] = useCellValues(iconComponentFor$, readOnly$);
+    const inputRef = useRef<HTMLInputElement>(null);
+    return (
+        <>
+            <ToolbarButton
+                className={props.className}
+                disabled={readOnly}
+                title={props.title ?? "Upload image"}
+                onClick={() => inputRef.current?.click()}
+            >
+                {props.children ?? icon(iconFor, "add_photo")}
+            </ToolbarButton>
+            <input
+                ref={inputRef}
+                type="file"
+                accept={props.accept ?? "image/*"}
+                style={{ display: "none" }}
+                onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) insert({ file, altText: "", title: "" });
+                    e.target.value = "";
+                }}
+            />
+        </>
+    );
 }
 
 export interface InsertImageComponentButtonProps
-	extends HagakiEditorToolbarButtonProps {
-	/** `<input type="file">` accept attribute. Defaults to `image/*`. */
-	accept?: string;
+    extends HagakiEditorToolbarButtonProps {
+    /** `<input type="file">` accept attribute. Defaults to `image/*`. */
+    accept?: string;
 }
 
 /**
@@ -351,62 +355,64 @@ export interface InsertImageComponentButtonProps
  * `onError` (or `console.error`).
  */
 export function InsertImageComponentButton(
-	props: InsertImageComponentButtonProps,
+    props: InsertImageComponentButtonProps,
 ) {
-	const insertJsx = usePublisher(insertJsx$);
-	const [iconFor, readOnly] = useCellValues(iconComponentFor$, readOnly$);
-	const { onInsertImage, onError } = useContext(ImageComponentContext);
-	const inputRef = useRef<HTMLInputElement>(null);
+    const insertJsx = usePublisher(insertJsx$);
+    const [iconFor, readOnly] = useCellValues(iconComponentFor$, readOnly$);
+    const { onInsertImage, onError } = useContext(ImageComponentContext);
+    const inputRef = useRef<HTMLInputElement>(null);
 
-	const handleFile = async (file: File) => {
-		if (!onInsertImage) return;
-		let attrs: ImageComponentAttrs;
-		try {
-			attrs = await onInsertImage(file);
-		} catch (e) {
-			// Nothing was inserted — just surface the failure.
-			if (onError) onError(e);
-			else console.error(e);
-			return;
-		}
-		insertJsx({
-			kind: "flow",
-			name: IMAGE_COMPONENT_NAME,
-			// String attributes only — hagaki/react's <Image> coerces
-			// width/height back to numbers.
-			props: {
-				imageId: attrs.id,
-				...(attrs.blurhash
-					? { blurHash64: blurhashToBase64(attrs.blurhash) }
-					: {}),
-				...(attrs.width != null ? { width: String(attrs.width) } : {}),
-				...(attrs.height != null ? { height: String(attrs.height) } : {}),
-				alt: attrs.alt ?? "",
-			},
-		});
-	};
+    const handleFile = async (file: File) => {
+        if (!onInsertImage) return;
+        let attrs: ImageComponentAttrs;
+        try {
+            attrs = await onInsertImage(file);
+        } catch (e) {
+            // Nothing was inserted — just surface the failure.
+            if (onError) onError(e);
+            else console.error(e);
+            return;
+        }
+        insertJsx({
+            kind: "flow",
+            name: IMAGE_COMPONENT_NAME,
+            // String attributes only — hagaki/react's <Image> coerces
+            // width/height back to numbers.
+            props: {
+                imageId: attrs.id,
+                ...(attrs.blurhash
+                    ? { blurHash64: blurhashToBase64(attrs.blurhash) }
+                    : {}),
+                ...(attrs.width != null ? { width: String(attrs.width) } : {}),
+                ...(attrs.height != null
+                    ? { height: String(attrs.height) }
+                    : {}),
+                alt: attrs.alt ?? "",
+            },
+        });
+    };
 
-	return (
-		<>
-			<ToolbarButton
-				className={props.className}
-				disabled={readOnly || !onInsertImage}
-				title={props.title ?? "Upload image"}
-				onClick={() => inputRef.current?.click()}
-			>
-				{props.children ?? icon(iconFor, "add_photo")}
-			</ToolbarButton>
-			<input
-				ref={inputRef}
-				type="file"
-				accept={props.accept ?? "image/*"}
-				style={{ display: "none" }}
-				onChange={(e) => {
-					const file = e.target.files?.[0];
-					if (file) void handleFile(file);
-					e.target.value = "";
-				}}
-			/>
-		</>
-	);
+    return (
+        <>
+            <ToolbarButton
+                className={props.className}
+                disabled={readOnly || !onInsertImage}
+                title={props.title ?? "Upload image"}
+                onClick={() => inputRef.current?.click()}
+            >
+                {props.children ?? icon(iconFor, "add_photo")}
+            </ToolbarButton>
+            <input
+                ref={inputRef}
+                type="file"
+                accept={props.accept ?? "image/*"}
+                style={{ display: "none" }}
+                onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) void handleFile(file);
+                    e.target.value = "";
+                }}
+            />
+        </>
+    );
 }

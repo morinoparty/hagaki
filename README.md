@@ -41,17 +41,17 @@ pnpm add @mdxeditor/editor @mdxeditor/gurx lexical@^0.48.0 react react-dom
 import { createHagakiClient } from "@morinoparty/hagaki";
 
 const hagaki = createHagakiClient({
-	github: {
-		owner: "morinoparty",
-		repo: "wiki-content",
-		branch: "main",
-		contentPath: "content/article", // 各記事は content/article/<uuid>/index.mdx
-		auth: env.HAGAKI_GITHUB_TOKEN, // string でも () => Promise<string> でも可
-	},
-	content: {
-		// コンテンツ Worker の配信 URL (<subdomain> はアカウントの workers.dev)
-		cdnBaseUrl: "https://wiki-content.<subdomain>.workers.dev",
-	},
+    github: {
+        owner: "morinoparty",
+        repo: "wiki-content",
+        branch: "main",
+        contentPath: "content/article", // 各記事は content/article/<uuid>/index.mdx
+        auth: env.HAGAKI_GITHUB_TOKEN, // string でも () => Promise<string> でも可
+    },
+    content: {
+        // コンテンツ Worker の配信 URL (<subdomain> はアカウントの workers.dev)
+        cdnBaseUrl: "https://wiki-content.<subdomain>.workers.dev",
+    },
 });
 
 const posts = await hagaki.posts.list({ sortBy: "created", order: "desc" });
@@ -65,12 +65,12 @@ import { committerFromBetterAuth } from "@morinoparty/hagaki/auth/better-auth";
 
 // committer 名は "<name> (<session.user.id>)" になる。この ID が履歴の userId
 const committer = committerFromBetterAuth(session, {
-	defaultEmail: "noreply@example.com",
+    defaultEmail: "noreply@example.com",
 });
 
 const result = await hagaki.posts.save(post, {
-	committer,
-	commitMessage: "📝 Update post: hello-world",
+    committer,
+    commitMessage: "📝 Update post: hello-world",
 });
 console.log(result.commitSha, result.commitUrl);
 ```
@@ -84,33 +84,33 @@ import { startPending } from "@morinoparty/hagaki/pending-images";
 import "@mdxeditor/editor/style.css";
 
 export function MyEditor(props: {
-	markdown: string;
-	onChange: (m: string) => void;
-	committedUrl: (imageId: string) => string;
+    markdown: string;
+    onChange: (m: string) => void;
+    committedUrl: (imageId: string) => string;
 }) {
-	return (
-		<HagakiEditor
-			markdown={props.markdown}
-			onChange={props.onChange}
-			onInsertImage={async (file) => {
-				const entry = await startPending({ file });
-				return {
-					id: entry.id,
-					blurhash: entry.blurhash,
-					width: entry.width,
-					height: entry.height,
-					alt: "",
-				};
-			}}
-			imagePreviewUrlFor={(id) => props.committedUrl(id)}
-		>
-			<HagakiEditor.Toolbar>
-				<HagakiEditor.UndoRedo />
-				<HagakiEditor.InsertImage.ComponentButton />
-			</HagakiEditor.Toolbar>
-			<HagakiEditor.Content className="my-prose" />
-		</HagakiEditor>
-	);
+    return (
+        <HagakiEditor
+            markdown={props.markdown}
+            onChange={props.onChange}
+            onInsertImage={async (file) => {
+                const entry = await startPending({ file });
+                return {
+                    id: entry.id,
+                    blurhash: entry.blurhash,
+                    width: entry.width,
+                    height: entry.height,
+                    alt: "",
+                };
+            }}
+            imagePreviewUrlFor={(id) => props.committedUrl(id)}
+        >
+            <HagakiEditor.Toolbar>
+                <HagakiEditor.UndoRedo />
+                <HagakiEditor.InsertImage.ComponentButton />
+            </HagakiEditor.Toolbar>
+            <HagakiEditor.Content className="my-prose" />
+        </HagakiEditor>
+    );
 }
 ```
 
@@ -228,8 +228,8 @@ MDXEditor はクライアント専用なので、`lazy(() => import(...))` な�
 ```ts
 // 記事を assets ごと削除する
 await hagaki.commits.commitFiles({
-	deletePaths: await hagaki.posts.repoPaths(uuid),
-	commitMessage: "🔥 Delete post",
+    deletePaths: await hagaki.posts.repoPaths(uuid),
+    commitMessage: "🔥 Delete post",
 });
 ```
 
@@ -264,7 +264,7 @@ import { userIdFromSession } from "@morinoparty/hagaki/auth/better-auth";
 const userId = userIdFromSession(session);
 const creator = (await hagaki.posts.firstCommit(uuid))?.userId ?? null;
 const mayEdit =
-	userId !== null && (post.editor?.includes(userId) || creator === userId);
+    userId !== null && (post.editor?.includes(userId) || creator === userId);
 ```
 
 下書きはコンテンツフォーマットの一部 (frontmatter の `draft: true`)。
@@ -312,14 +312,14 @@ export default createContentApp();
 import { bindings, defineConfig } from "cf/config";
 
 export default defineConfig({
-	worker: {
-		name: "hagaki-content",
-		compatibilityDate: "2026-10-01",
-		entrypoint: "src/index.ts",
-		workersDev: true,
-		assets: { runWorkerFirst: ["/article/*"] },
-		env: { ASSETS: bindings.assets() },
-	},
+    worker: {
+        name: "hagaki-content",
+        compatibilityDate: "2026-10-01",
+        entrypoint: "src/index.ts",
+        workersDev: true,
+        assets: { runWorkerFirst: ["/article/*"] },
+        env: { ASSETS: bindings.assets() },
+    },
 });
 ```
 

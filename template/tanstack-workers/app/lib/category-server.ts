@@ -5,51 +5,51 @@ import { resolveCommitter } from "./committer";
 import { getHagakiClient } from "./hagaki";
 
 export const listCategoriesFn = createServerFn({ method: "GET" }).handler(
-	async () => (await getHagakiClient()).categories.list(),
+    async () => (await getHagakiClient()).categories.list(),
 );
 
 export const getCategoryFn = createServerFn({ method: "GET" })
-	.validator((slug: string) => slug)
-	.handler(async ({ data: slug }) => {
-		const client = await getHagakiClient();
-		const list = await client.categories.list();
-		return list.find((c) => c.slug === slug) ?? null;
-	});
+    .validator((slug: string) => slug)
+    .handler(async ({ data: slug }) => {
+        const client = await getHagakiClient();
+        const list = await client.categories.list();
+        return list.find((c) => c.slug === slug) ?? null;
+    });
 
 const SLUG_RE = /^[a-z0-9-]+$/;
 
 export const commitCategoryFn = createServerFn({ method: "POST" })
-	.validator((category: WikiCategory) => category)
-	.handler(async ({ data }) => {
-		// server fn は直接叩ける RPC なので、書き込みはここで認証する
-		// (commitPostFn と同じ)。一覧・取得の server fn は公開のまま。
-		await requireSession();
-		const committer = await resolveCommitter();
-		// The slug is concatenated straight into a repo path — never trust
-		// the client to keep it inside content/categories/.
-		if (!SLUG_RE.test(data.slug)) {
-			throw new Error(
-				`commitCategoryFn: invalid slug "${data.slug}" (allowed: a-z 0-9 -)`,
-			);
-		}
-		const client = await getHagakiClient();
-		const path = `content/categories/${data.slug}.json`;
-		const content = `${JSON.stringify(
-			{
-				title: data.title,
-				slug: data.slug,
-				body: data.body,
-				// Optional, so only write it back when set — otherwise every
-				// save would stamp `"option": null` onto plain categories.
-				...(data.option ? { option: data.option } : {}),
-			},
-			null,
-			4,
-		)}\n`;
-		return client.commits.commitFiles({
-			files: [{ path, content }],
-			// gitmoji: 🏷️ = categories (matches the post's 📝 messages).
-			commitMessage: `🏷️ Update category: ${data.slug}`,
-			committer,
-		});
-	});
+    .validator((category: WikiCategory) => category)
+    .handler(async ({ data }) => {
+        // server fn は直接叩ける RPC なので、書き込みはここで認証する
+        // (commitPostFn と同じ)。一覧・取得の server fn は公開のまま。
+        await requireSession();
+        const committer = await resolveCommitter();
+        // The slug is concatenated straight into a repo path — never trust
+        // the client to keep it inside content/categories/.
+        if (!SLUG_RE.test(data.slug)) {
+            throw new Error(
+                `commitCategoryFn: invalid slug "${data.slug}" (allowed: a-z 0-9 -)`,
+            );
+        }
+        const client = await getHagakiClient();
+        const path = `content/categories/${data.slug}.json`;
+        const content = `${JSON.stringify(
+            {
+                title: data.title,
+                slug: data.slug,
+                body: data.body,
+                // Optional, so only write it back when set — otherwise every
+                // save would stamp `"option": null` onto plain categories.
+                ...(data.option ? { option: data.option } : {}),
+            },
+            null,
+            4,
+        )}\n`;
+        return client.commits.commitFiles({
+            files: [{ path, content }],
+            // gitmoji: 🏷️ = categories (matches the post's 📝 messages).
+            commitMessage: `🏷️ Update category: ${data.slug}`,
+            committer,
+        });
+    });

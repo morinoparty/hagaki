@@ -1,38 +1,38 @@
 import {
-	AdmonitionDirectiveDescriptor,
-	BlockTypeSelect,
-	BoldItalicUnderlineToggles,
-	codeBlockPlugin,
-	directivesPlugin,
-	headingsPlugin,
-	imagePlugin,
-	jsxPlugin,
-	linkPlugin,
-	listsPlugin,
-	markdownShortcutPlugin,
-	quotePlugin,
-	type RealmPlugin,
-	tablePlugin,
-	thematicBreakPlugin,
-	toolbarPlugin,
-	UndoRedo,
+    AdmonitionDirectiveDescriptor,
+    BlockTypeSelect,
+    BoldItalicUnderlineToggles,
+    codeBlockPlugin,
+    directivesPlugin,
+    headingsPlugin,
+    imagePlugin,
+    jsxPlugin,
+    linkPlugin,
+    listsPlugin,
+    markdownShortcutPlugin,
+    quotePlugin,
+    type RealmPlugin,
+    tablePlugin,
+    thematicBreakPlugin,
+    toolbarPlugin,
+    UndoRedo,
 } from "@mdxeditor/editor";
 import type { ReactNode } from "react";
 import { createImageComponentDescriptor } from "./image-jsx.js";
 
 export interface DefaultPluginsOptions {
-	imageUploadHandler?: (file: File) => Promise<string>;
-	imagePreviewHandler?: (src: string) => Promise<string>;
-	imageAutocompleteSuggestions?: string[];
-	/**
-	 * Display URL for a committed image id. `<Image />` MDX components
-	 * render inline via {@link createImageComponentDescriptor}; pending ids
-	 * use their entry's `blob:` preview instead. If omitted, committed
-	 * images show only the blurhash placeholder.
-	 */
-	imagePreviewUrlFor?: (id: string) => string;
-	toolbarContents?: () => ReactNode;
-	toolbarClassName?: string;
+    imageUploadHandler?: (file: File) => Promise<string>;
+    imagePreviewHandler?: (src: string) => Promise<string>;
+    imageAutocompleteSuggestions?: string[];
+    /**
+     * Display URL for a committed image id. `<Image />` MDX components
+     * render inline via {@link createImageComponentDescriptor}; pending ids
+     * use their entry's `blob:` preview instead. If omitted, committed
+     * images show only the blurhash placeholder.
+     */
+    imagePreviewUrlFor?: (id: string) => string;
+    toolbarContents?: () => ReactNode;
+    toolbarClassName?: string;
 }
 
 /**
@@ -46,59 +46,60 @@ export { BlockTypeSelect, BoldItalicUnderlineToggles, UndoRedo };
  * Callers can pass their own via `toolbarContents`.
  */
 export function defaultToolbarContents(): ReactNode {
-	return (
-		<>
-			<BlockTypeSelect />
-			<BoldItalicUnderlineToggles />
-			<UndoRedo />
-		</>
-	);
+    return (
+        <>
+            <BlockTypeSelect />
+            <BoldItalicUnderlineToggles />
+            <UndoRedo />
+        </>
+    );
 }
 
 export function defaultPlugins(
-	options: DefaultPluginsOptions = {},
+    options: DefaultPluginsOptions = {},
 ): RealmPlugin[] {
-	const plugins: RealmPlugin[] = [
-		headingsPlugin(),
-		linkPlugin(),
-		tablePlugin(),
-		listsPlugin(),
-		directivesPlugin({
-			directiveDescriptors: [AdmonitionDirectiveDescriptor],
-		}),
-		// MDX `<Image />` support. Registered even without a resolver so
-		// bodies that contain the component still parse instead of erroring.
-		jsxPlugin({
-			jsxComponentDescriptors: [
-				createImageComponentDescriptor({
-					previewUrlFor: options.imagePreviewUrlFor ?? (() => ""),
-				}),
-			],
-		}),
-		codeBlockPlugin(),
-		quotePlugin(),
-		thematicBreakPlugin(),
-		markdownShortcutPlugin(),
-	];
+    const plugins: RealmPlugin[] = [
+        headingsPlugin(),
+        linkPlugin(),
+        tablePlugin(),
+        listsPlugin(),
+        directivesPlugin({
+            directiveDescriptors: [AdmonitionDirectiveDescriptor],
+        }),
+        // MDX `<Image />` support. Registered even without a resolver so
+        // bodies that contain the component still parse instead of erroring.
+        jsxPlugin({
+            jsxComponentDescriptors: [
+                createImageComponentDescriptor({
+                    previewUrlFor: options.imagePreviewUrlFor ?? (() => ""),
+                }),
+            ],
+        }),
+        codeBlockPlugin(),
+        quotePlugin(),
+        thematicBreakPlugin(),
+        markdownShortcutPlugin(),
+    ];
 
-	if (options.imageUploadHandler || options.imagePreviewHandler) {
-		plugins.push(
-			imagePlugin({
-				imageUploadHandler: options.imageUploadHandler,
-				imagePreviewHandler: options.imagePreviewHandler,
-				imageAutocompleteSuggestions: options.imageAutocompleteSuggestions,
-			}),
-		);
-	}
+    if (options.imageUploadHandler || options.imagePreviewHandler) {
+        plugins.push(
+            imagePlugin({
+                imageUploadHandler: options.imageUploadHandler,
+                imagePreviewHandler: options.imagePreviewHandler,
+                imageAutocompleteSuggestions:
+                    options.imageAutocompleteSuggestions,
+            }),
+        );
+    }
 
-	if (options.toolbarContents) {
-		plugins.push(
-			toolbarPlugin({
-				toolbarClassName: options.toolbarClassName,
-				toolbarContents: options.toolbarContents,
-			}),
-		);
-	}
+    if (options.toolbarContents) {
+        plugins.push(
+            toolbarPlugin({
+                toolbarClassName: options.toolbarClassName,
+                toolbarContents: options.toolbarContents,
+            }),
+        );
+    }
 
-	return plugins;
+    return plugins;
 }

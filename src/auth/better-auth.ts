@@ -6,29 +6,29 @@ import { type Committer, makeCommitter } from "./index.js";
  * what {@link mapOAuthProfile}'s `idClaims` / `nameClaims` read.
  */
 export interface OAuthProfile extends Record<string, unknown> {
-	sub?: string;
-	preferred_username?: string;
-	name?: string;
-	picture?: string;
-	email?: string;
+    sub?: string;
+    preferred_username?: string;
+    name?: string;
+    picture?: string;
+    email?: string;
 }
 
 export interface MapOAuthProfileOptions {
-	/**
-	 * Claim names to try, in order, for the stable identity. The OIDC `sub` is
-	 * always tried last, so listing a provider-specific claim here lets it win
-	 * without losing the standard fallback. Numeric claims (e.g. GitHub's
-	 * `id`) are accepted and stringified.
-	 */
-	idClaims?: readonly string[];
-	/** Claim names to try, in order, for the display name. */
-	nameClaims?: readonly string[];
-	/**
-	 * Build an avatar URL from the resolved id. Providers that serve avatars
-	 * off the identity (a game UUID, a gravatar hash) plug in here instead of
-	 * hagaki knowing about any of them.
-	 */
-	avatarUrl?: (id: string) => string;
+    /**
+     * Claim names to try, in order, for the stable identity. The OIDC `sub` is
+     * always tried last, so listing a provider-specific claim here lets it win
+     * without losing the standard fallback. Numeric claims (e.g. GitHub's
+     * `id`) are accepted and stringified.
+     */
+    idClaims?: readonly string[];
+    /** Claim names to try, in order, for the display name. */
+    nameClaims?: readonly string[];
+    /**
+     * Build an avatar URL from the resolved id. Providers that serve avatars
+     * off the identity (a game UUID, a gravatar hash) plug in here instead of
+     * hagaki knowing about any of them.
+     */
+    avatarUrl?: (id: string) => string;
 }
 
 /**
@@ -40,9 +40,9 @@ export interface MapOAuthProfileOptions {
  * stops matching. Keeping the provider's id makes those references durable.
  */
 export interface MappedOAuthUser {
-	id: string;
-	name?: string;
-	image?: string;
+    id: string;
+    name?: string;
+    image?: string;
 }
 
 /**
@@ -50,17 +50,17 @@ export interface MappedOAuthUser {
  * stringified, since some providers send numeric ids (`{ "id": 123 }`).
  */
 function firstString(
-	profile: OAuthProfile,
-	claims: readonly string[],
+    profile: OAuthProfile,
+    claims: readonly string[],
 ): string | undefined {
-	for (const claim of claims) {
-		const value = profile[claim];
-		if (typeof value === "string" && value.length > 0) return value;
-		if (typeof value === "number" && Number.isFinite(value)) {
-			return String(value);
-		}
-	}
-	return undefined;
+    for (const claim of claims) {
+        const value = profile[claim];
+        if (typeof value === "string" && value.length > 0) return value;
+        if (typeof value === "number" && Number.isFinite(value)) {
+            return String(value);
+        }
+    }
+    return undefined;
 }
 
 /**
@@ -69,17 +69,18 @@ function firstString(
  * any equivalent hook.
  */
 export function mapOAuthProfile(
-	profile: OAuthProfile,
-	options?: MapOAuthProfileOptions,
+    profile: OAuthProfile,
+    options?: MapOAuthProfileOptions,
 ): MappedOAuthUser {
-	const id = firstString(profile, [...(options?.idClaims ?? []), "sub"]) ?? "";
-	const name = firstString(profile, [
-		...(options?.nameClaims ?? []),
-		"preferred_username",
-		"name",
-	]);
-	const image = id ? options?.avatarUrl?.(id) : undefined;
-	return { id, name, image: image ?? profile.picture };
+    const id =
+        firstString(profile, [...(options?.idClaims ?? []), "sub"]) ?? "";
+    const name = firstString(profile, [
+        ...(options?.nameClaims ?? []),
+        "preferred_username",
+        "name",
+    ]);
+    const image = id ? options?.avatarUrl?.(id) : undefined;
+    return { id, name, image: image ?? profile.picture };
 }
 
 /**
@@ -88,11 +89,11 @@ export function mapOAuthProfile(
  * other auth solutions can still pass compatible session objects.
  */
 export interface BetterAuthLikeSession {
-	user?: {
-		id?: string | null;
-		name?: string | null;
-		email?: string | null;
-	} | null;
+    user?: {
+        id?: string | null;
+        name?: string | null;
+        email?: string | null;
+    } | null;
 }
 
 /**
@@ -110,16 +111,16 @@ export interface BetterAuthLikeSession {
  * one. `null` when the session has no user or an empty id.
  */
 export function userIdFromSession(
-	session: BetterAuthLikeSession | null | undefined,
+    session: BetterAuthLikeSession | null | undefined,
 ): string | null {
-	return session?.user?.id || null;
+    return session?.user?.id || null;
 }
 
 export interface CommitterFromBetterAuthOptions {
-	/** Fallback when the session user has no email. */
-	defaultEmail?: string;
-	/** Override committer name formatting. */
-	nameFormat?: (input: { id?: string; name: string }) => string;
+    /** Fallback when the session user has no email. */
+    defaultEmail?: string;
+    /** Override committer name formatting. */
+    nameFormat?: (input: { id?: string; name: string }) => string;
 }
 
 /**
@@ -132,19 +133,19 @@ export interface CommitterFromBetterAuthOptions {
  * characters).
  */
 export function committerFromBetterAuth(
-	session: BetterAuthLikeSession | null | undefined,
-	options?: CommitterFromBetterAuthOptions,
+    session: BetterAuthLikeSession | null | undefined,
+    options?: CommitterFromBetterAuthOptions,
 ): Committer | undefined {
-	const user = session?.user;
-	if (!user) return undefined;
-	const name = user.name ?? undefined;
-	if (!name) return undefined;
-	const email = user.email ?? options?.defaultEmail;
-	if (!email) return undefined;
-	return makeCommitter({
-		name,
-		id: userIdFromSession(session) ?? undefined,
-		email,
-		nameFormat: options?.nameFormat,
-	});
+    const user = session?.user;
+    if (!user) return undefined;
+    const name = user.name ?? undefined;
+    if (!name) return undefined;
+    const email = user.email ?? options?.defaultEmail;
+    if (!email) return undefined;
+    return makeCommitter({
+        name,
+        id: userIdFromSession(session) ?? undefined,
+        email,
+        nameFormat: options?.nameFormat,
+    });
 }

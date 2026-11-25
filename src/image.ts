@@ -16,18 +16,18 @@
  * boundary.
  */
 export {
-	type AnalyzedImage,
-	analyzeImage,
-	encodeAnalyzedImage,
-	ImageProcessingError,
-	MAX_AVIF_BYTES,
-	type ProcessedImage,
-	type ProcessImageOptions,
-	processImage,
+    type AnalyzedImage,
+    analyzeImage,
+    encodeAnalyzedImage,
+    ImageProcessingError,
+    MAX_AVIF_BYTES,
+    type ProcessedImage,
+    type ProcessImageOptions,
+    processImage,
 } from "./image/pipeline.js";
 export {
-	ImageValidationError,
-	type ImageValidationOptions,
-	isAvif,
-	validateAvifUpload,
+    ImageValidationError,
+    type ImageValidationOptions,
+    isAvif,
+    validateAvifUpload,
 } from "./image/validation.js";
