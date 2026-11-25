@@ -10,11 +10,11 @@
 
 /** Encode a raw blurhash into its stored base64 form. */
 export function blurhashToBase64(raw: string): string {
-    if (typeof Buffer !== "undefined") {
-        return Buffer.from(raw, "utf-8").toString("base64");
-    }
-    // Blurhash is pure ASCII, so btoa is safe.
-    return btoa(raw);
+	if (typeof Buffer !== "undefined") {
+		return Buffer.from(raw, "utf-8").toString("base64");
+	}
+	// Blurhash is pure ASCII, so btoa is safe.
+	return btoa(raw);
 }
 
 /**
@@ -23,16 +23,16 @@ export function blurhashToBase64(raw: string): string {
  * placeholder".
  */
 export function blurhashFromBase64(
-    encoded: string | null | undefined,
+	encoded: string | null | undefined,
 ): string | undefined {
-    if (!encoded) return undefined;
-    try {
-        if (typeof Buffer !== "undefined") {
-            const decoded = Buffer.from(encoded, "base64").toString("utf-8");
-            return decoded || undefined;
-        }
-        return atob(encoded) || undefined;
-    } catch {
-        return undefined;
-    }
+	if (!encoded) return undefined;
+	try {
+		if (typeof Buffer !== "undefined") {
+			const decoded = Buffer.from(encoded, "base64").toString("utf-8");
+			return decoded || undefined;
+		}
+		return atob(encoded) || undefined;
+	} catch {
+		return undefined;
+	}
 }

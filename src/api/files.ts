@@ -10,49 +10,49 @@ import { userIdFromCommitterName } from "../auth/index.js";
  * itself, which is what an editor needs.
  */
 export interface FilesDeps {
-    octokit: Octokit;
-    owner: string;
-    repo: string;
-    branch: string;
+	octokit: Octokit;
+	owner: string;
+	repo: string;
+	branch: string;
 }
 
 export interface RepoFile {
-    path: string;
-    /** UTF-8 decoded contents. */
-    text: string;
-    /** Blob sha of this version. */
-    sha: string;
+	path: string;
+	/** UTF-8 decoded contents. */
+	text: string;
+	/** Blob sha of this version. */
+	sha: string;
 }
 
 export interface RepoEntry {
-    path: string;
-    name: string;
-    type: "file" | "dir";
-    sha: string;
-    size: number;
+	path: string;
+	name: string;
+	type: "file" | "dir";
+	sha: string;
+	size: number;
 }
 
 export interface PathCommit {
-    sha: string;
-    message: string;
-    /** Commit author name — `makeCommitter` writes `"<name> (<id>)"`. */
-    author: string;
-    /**
-     * Auth user id recovered from {@link author} (`userIdFromCommitterName`);
-     * `null` when the name isn't in the convention.
-     */
-    userId: string | null;
-    date: string;
+	sha: string;
+	message: string;
+	/** Commit author name — `makeCommitter` writes `"<name> (<id>)"`. */
+	author: string;
+	/**
+	 * Auth user id recovered from {@link author} (`userIdFromCommitterName`);
+	 * `null` when the name isn't in the convention.
+	 */
+	userId: string | null;
+	date: string;
 }
 
 function decodeBase64(content: string): string {
-    const normalized = content.replace(/\n/g, "");
-    if (typeof Buffer !== "undefined") {
-        return Buffer.from(normalized, "base64").toString("utf-8");
-    }
-    const binary = atob(normalized);
-    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
-    return new TextDecoder().decode(bytes);
+	const normalized = content.replace(/\n/g, "");
+	if (typeof Buffer !== "undefined") {
+		return Buffer.from(normalized, "base64").toString("utf-8");
+	}
+	const binary = atob(normalized);
+	const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+	return new TextDecoder().decode(bytes);
 }
 
 /**
@@ -61,11 +61,11 @@ function decodeBase64(content: string): string {
  * are rethrown so callers never mistake them for a missing path.
  */
 function isNotFound(e: unknown): boolean {
-    return (
-        typeof e === "object" &&
-        e !== null &&
-        (e as { status?: number }).status === 404
-    );
+	return (
+		typeof e === "object" &&
+		e !== null &&
+		(e as { status?: number }).status === 404
+	);
 }
 
 /**
@@ -73,26 +73,26 @@ function isNotFound(e: unknown): boolean {
  * any other API error is rethrown.
  */
 export async function getFile(
-    deps: FilesDeps,
-    path: string,
-    ref?: string,
+	deps: FilesDeps,
+	path: string,
+	ref?: string,
 ): Promise<RepoFile | null> {
-    const { octokit, owner, repo, branch } = deps;
-    try {
-        const { data } = await octokit.request(
-            "GET /repos/{owner}/{repo}/contents/{path}",
-            { owner, repo, path, ref: ref ?? branch },
-        );
-        if (Array.isArray(data) || data.type !== "file") return null;
-        return {
-            path: data.path,
-            text: decodeBase64(data.content),
-            sha: data.sha,
-        };
-    } catch (e) {
-        if (isNotFound(e)) return null;
-        throw e;
-    }
+	const { octokit, owner, repo, branch } = deps;
+	try {
+		const { data } = await octokit.request(
+			"GET /repos/{owner}/{repo}/contents/{path}",
+			{ owner, repo, path, ref: ref ?? branch },
+		);
+		if (Array.isArray(data) || data.type !== "file") return null;
+		return {
+			path: data.path,
+			text: decodeBase64(data.content),
+			sha: data.sha,
+		};
+	} catch (e) {
+		if (isNotFound(e)) return null;
+		throw e;
+	}
 }
 
 /**
@@ -102,29 +102,29 @@ export async function getFile(
  * only inlines files up to 1MB; larger blobs return `null`.
  */
 export async function getBinaryFile(
-    deps: FilesDeps,
-    path: string,
-    ref?: string,
+	deps: FilesDeps,
+	path: string,
+	ref?: string,
 ): Promise<Uint8Array | null> {
-    const { octokit, owner, repo, branch } = deps;
-    try {
-        const { data } = await octokit.request(
-            "GET /repos/{owner}/{repo}/contents/{path}",
-            { owner, repo, path, ref: ref ?? branch },
-        );
-        if (Array.isArray(data) || data.type !== "file" || !data.content) {
-            return null;
-        }
-        const normalized = data.content.replace(/\n/g, "");
-        if (typeof Buffer !== "undefined") {
-            return new Uint8Array(Buffer.from(normalized, "base64"));
-        }
-        const binary = atob(normalized);
-        return Uint8Array.from(binary, (c) => c.charCodeAt(0));
-    } catch (e) {
-        if (isNotFound(e)) return null;
-        throw e;
-    }
+	const { octokit, owner, repo, branch } = deps;
+	try {
+		const { data } = await octokit.request(
+			"GET /repos/{owner}/{repo}/contents/{path}",
+			{ owner, repo, path, ref: ref ?? branch },
+		);
+		if (Array.isArray(data) || data.type !== "file" || !data.content) {
+			return null;
+		}
+		const normalized = data.content.replace(/\n/g, "");
+		if (typeof Buffer !== "undefined") {
+			return new Uint8Array(Buffer.from(normalized, "base64"));
+		}
+		const binary = atob(normalized);
+		return Uint8Array.from(binary, (c) => c.charCodeAt(0));
+	} catch (e) {
+		if (isNotFound(e)) return null;
+		throw e;
+	}
 }
 
 /**
@@ -132,23 +132,23 @@ export async function getBinaryFile(
  * any other API error is rethrown.
  */
 export async function fileExists(
-    deps: FilesDeps,
-    path: string,
-    ref?: string,
+	deps: FilesDeps,
+	path: string,
+	ref?: string,
 ): Promise<boolean> {
-    const { octokit, owner, repo, branch } = deps;
-    try {
-        await octokit.request("GET /repos/{owner}/{repo}/contents/{path}", {
-            owner,
-            repo,
-            path,
-            ref: ref ?? branch,
-        });
-        return true;
-    } catch (e) {
-        if (isNotFound(e)) return false;
-        throw e;
-    }
+	const { octokit, owner, repo, branch } = deps;
+	try {
+		await octokit.request("GET /repos/{owner}/{repo}/contents/{path}", {
+			owner,
+			repo,
+			path,
+			ref: ref ?? branch,
+		});
+		return true;
+	} catch (e) {
+		if (isNotFound(e)) return false;
+		throw e;
+	}
 }
 
 /**
@@ -156,30 +156,30 @@ export async function fileExists(
  * other API error is rethrown.
  */
 export async function listDirectory(
-    deps: FilesDeps,
-    path: string,
-    ref?: string,
+	deps: FilesDeps,
+	path: string,
+	ref?: string,
 ): Promise<RepoEntry[]> {
-    const { octokit, owner, repo, branch } = deps;
-    try {
-        const { data } = await octokit.request(
-            "GET /repos/{owner}/{repo}/contents/{path}",
-            { owner, repo, path, ref: ref ?? branch },
-        );
-        if (!Array.isArray(data)) return [];
-        return data
-            .filter((e) => e.type === "file" || e.type === "dir")
-            .map((e) => ({
-                path: e.path,
-                name: e.name,
-                type: e.type as "file" | "dir",
-                sha: e.sha,
-                size: e.size ?? 0,
-            }));
-    } catch (e) {
-        if (isNotFound(e)) return [];
-        throw e;
-    }
+	const { octokit, owner, repo, branch } = deps;
+	try {
+		const { data } = await octokit.request(
+			"GET /repos/{owner}/{repo}/contents/{path}",
+			{ owner, repo, path, ref: ref ?? branch },
+		);
+		if (!Array.isArray(data)) return [];
+		return data
+			.filter((e) => e.type === "file" || e.type === "dir")
+			.map((e) => ({
+				path: e.path,
+				name: e.name,
+				type: e.type as "file" | "dir",
+				sha: e.sha,
+				size: e.size ?? 0,
+			}));
+	} catch (e) {
+		if (isNotFound(e)) return [];
+		throw e;
+	}
 }
 
 /**
@@ -189,20 +189,20 @@ export async function listDirectory(
  * partial list, so a delete never silently leaves files behind.
  */
 export async function listFilesRecursive(
-    deps: FilesDeps,
-    path: string,
-    ref?: string,
+	deps: FilesDeps,
+	path: string,
+	ref?: string,
 ): Promise<string[]> {
-    const entries = await listDirectory(deps, path, ref);
-    const paths: string[] = [];
-    for (const entry of entries) {
-        if (entry.type === "file") {
-            paths.push(entry.path);
-        } else {
-            paths.push(...(await listFilesRecursive(deps, entry.path, ref)));
-        }
-    }
-    return paths;
+	const entries = await listDirectory(deps, path, ref);
+	const paths: string[] = [];
+	for (const entry of entries) {
+		if (entry.type === "file") {
+			paths.push(entry.path);
+		} else {
+			paths.push(...(await listFilesRecursive(deps, entry.path, ref)));
+		}
+	}
+	return paths;
 }
 
 /**
@@ -214,47 +214,47 @@ export async function listFilesRecursive(
  * warning is logged when that happens.
  */
 export async function listTreePaths(deps: FilesDeps): Promise<string[]> {
-    const { octokit, owner, repo, branch } = deps;
-    const { data } = await octokit.request(
-        "GET /repos/{owner}/{repo}/git/trees/{tree_sha}",
-        { owner, repo, tree_sha: branch, recursive: "1" },
-    );
-    if (data.truncated) {
-        console.warn(
-            "hagaki: git tree listing was truncated by GitHub — some paths are missing",
-        );
-    }
-    return data.tree
-        .filter((e) => e.type === "blob" && typeof e.path === "string")
-        .map((e) => e.path as string);
+	const { octokit, owner, repo, branch } = deps;
+	const { data } = await octokit.request(
+		"GET /repos/{owner}/{repo}/git/trees/{tree_sha}",
+		{ owner, repo, tree_sha: branch, recursive: "1" },
+	);
+	if (data.truncated) {
+		console.warn(
+			"hagaki: git tree listing was truncated by GitHub — some paths are missing",
+		);
+	}
+	return data.tree
+		.filter((e) => e.type === "blob" && typeof e.path === "string")
+		.map((e) => e.path as string);
 }
 
 /** Paging for {@link listPathCommits}, passed through to the commits API. */
 export interface PathCommitsOptions {
-    /** Commits per page (GitHub caps it at 100). Default 50. */
-    perPage?: number;
-    /** 1-based page number. Default 1 (the newest commits). */
-    page?: number;
+	/** Commits per page (GitHub caps it at 100). Default 50. */
+	perPage?: number;
+	/** 1-based page number. Default 1 (the newest commits). */
+	page?: number;
 }
 
 /** Shape of one item of `GET /repos/{owner}/{repo}/commits` we read. */
 interface ApiCommit {
-    sha: string;
-    commit: {
-        message: string;
-        author?: { name?: string; date?: string } | null;
-    };
+	sha: string;
+	commit: {
+		message: string;
+		author?: { name?: string; date?: string } | null;
+	};
 }
 
 function toPathCommit(commit: ApiCommit): PathCommit {
-    const author = commit.commit.author?.name ?? "Unknown";
-    return {
-        sha: commit.sha,
-        message: commit.commit.message,
-        author,
-        userId: userIdFromCommitterName(author),
-        date: commit.commit.author?.date ?? "",
-    };
+	const author = commit.commit.author?.name ?? "Unknown";
+	return {
+		sha: commit.sha,
+		message: commit.commit.message,
+		author,
+		userId: userIdFromCommitterName(author),
+		date: commit.commit.author?.date ?? "",
+	};
 }
 
 /**
@@ -262,36 +262,33 @@ function toPathCommit(commit: ApiCommit): PathCommit {
  * when there is none (the current page is the only / last one).
  */
 function lastPageFromLinkHeader(link: string | undefined): number | null {
-    if (!link) return null;
-    for (const part of link.split(",")) {
-        if (!/rel="last"/.test(part)) continue;
-        // `[?&]page=` so the `per_page=` parameter never matches.
-        const page = /<[^>]*[?&]page=(\d+)[^>]*>/.exec(part)?.[1];
-        return page ? Number(page) : null;
-    }
-    return null;
+	if (!link) return null;
+	for (const part of link.split(",")) {
+		if (!/rel="last"/.test(part)) continue;
+		// `[?&]page=` so the `per_page=` parameter never matches.
+		const page = /<[^>]*[?&]page=(\d+)[^>]*>/.exec(part)?.[1];
+		return page ? Number(page) : null;
+	}
+	return null;
 }
 
 /** Commits that touched a path, newest first. */
 export async function listPathCommits(
-    deps: FilesDeps,
-    path: string,
-    options?: PathCommitsOptions,
+	deps: FilesDeps,
+	path: string,
+	options?: PathCommitsOptions,
 ): Promise<PathCommit[]> {
-    const { octokit, owner, repo, branch } = deps;
-    const { data } = await octokit.request(
-        "GET /repos/{owner}/{repo}/commits",
-        {
-            owner,
-            repo,
-            // Walk the configured branch, not the repository's default one.
-            sha: branch,
-            path,
-            per_page: options?.perPage ?? 50,
-            ...(options?.page ? { page: options.page } : {}),
-        },
-    );
-    return data.map(toPathCommit);
+	const { octokit, owner, repo, branch } = deps;
+	const { data } = await octokit.request("GET /repos/{owner}/{repo}/commits", {
+		owner,
+		repo,
+		// Walk the configured branch, not the repository's default one.
+		sha: branch,
+		path,
+		per_page: options?.perPage ?? 50,
+		...(options?.page ? { page: options.page } : {}),
+	});
+	return data.map(toPathCommit);
 }
 
 /**
@@ -309,37 +306,37 @@ export async function listPathCommits(
  * are not followed: a file moved into `path` starts at the move.
  */
 export async function getFirstPathCommit(
-    deps: FilesDeps,
-    path: string,
+	deps: FilesDeps,
+	path: string,
 ): Promise<PathCommit | null> {
-    const { octokit, owner, repo, branch } = deps;
-    const first = await octokit.request("GET /repos/{owner}/{repo}/commits", {
-        owner,
-        repo,
-        // Walk the configured branch, not the repository's default one.
-        sha: branch,
-        path,
-        per_page: 1,
-    });
-    const newest = first.data[0];
-    if (!newest) return null;
+	const { octokit, owner, repo, branch } = deps;
+	const first = await octokit.request("GET /repos/{owner}/{repo}/commits", {
+		owner,
+		repo,
+		// Walk the configured branch, not the repository's default one.
+		sha: branch,
+		path,
+		per_page: 1,
+	});
+	const newest = first.data[0];
+	if (!newest) return null;
 
-    const lastPage = lastPageFromLinkHeader(first.headers.link);
-    if (lastPage === null || lastPage <= 1) return toPathCommit(newest);
+	const lastPage = lastPageFromLinkHeader(first.headers.link);
+	if (lastPage === null || lastPage <= 1) return toPathCommit(newest);
 
-    // Pin the second request to the head the first one saw. Listing from the
-    // branch again would count a commit that landed in between, and page
-    // `lastPage` would then hold the second-oldest commit instead.
-    const last = await octokit.request("GET /repos/{owner}/{repo}/commits", {
-        owner,
-        repo,
-        sha: newest.sha,
-        path,
-        per_page: 1,
-        page: lastPage,
-    });
-    const oldest = last.data[0];
-    return oldest ? toPathCommit(oldest) : null;
+	// Pin the second request to the head the first one saw. Listing from the
+	// branch again would count a commit that landed in between, and page
+	// `lastPage` would then hold the second-oldest commit instead.
+	const last = await octokit.request("GET /repos/{owner}/{repo}/commits", {
+		owner,
+		repo,
+		sha: newest.sha,
+		path,
+		per_page: 1,
+		page: lastPage,
+	});
+	const oldest = last.data[0];
+	return oldest ? toPathCommit(oldest) : null;
 }
 
 /**
@@ -347,16 +344,16 @@ export async function getFirstPathCommit(
  * change between them (GitHub omits unchanged files from the comparison).
  */
 export async function getPathDiff(
-    deps: FilesDeps,
-    path: string,
-    base: string,
-    head: string,
+	deps: FilesDeps,
+	path: string,
+	base: string,
+	head: string,
 ): Promise<string | null> {
-    const { octokit, owner, repo } = deps;
-    const { data } = await octokit.request(
-        "GET /repos/{owner}/{repo}/compare/{basehead}",
-        { owner, repo, basehead: `${base}...${head}` },
-    );
-    const file = data.files?.find((f) => f.filename === path);
-    return file?.patch ?? null;
+	const { octokit, owner, repo } = deps;
+	const { data } = await octokit.request(
+		"GET /repos/{owner}/{repo}/compare/{basehead}",
+		{ owner, repo, basehead: `${base}...${head}` },
+	);
+	const file = data.files?.find((f) => f.filename === path);
+	return file?.patch ?? null;
 }

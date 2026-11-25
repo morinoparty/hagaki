@@ -11,13 +11,13 @@
  * plus the `HagakiImageConfig` provider that tells it how to resolve URLs.
  */
 export type {
-    HagakiImageConfigProps,
-    HagakiImageProps,
-    HagakiImageUrlInput,
-    HagakiImageUrlResolver,
+	HagakiImageConfigProps,
+	HagakiImageProps,
+	HagakiImageUrlInput,
+	HagakiImageUrlResolver,
 } from "./render/Image.js";
 export {
-    defaultImageUrl,
-    HagakiImageConfig,
-    Image,
+	defaultImageUrl,
+	HagakiImageConfig,
+	Image,
 } from "./render/Image.js";

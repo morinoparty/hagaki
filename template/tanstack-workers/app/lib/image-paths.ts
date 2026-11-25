@@ -10,8 +10,8 @@ import type { ImagePathConfig } from "@morinoparty/hagaki/markdown";
  * diffing the old and new body tells which image files to delete.
  */
 export function imagePathsFor(uuid: string): ImagePathConfig {
-    return {
-        urlPrefix: `/article/${uuid}/assets/`,
-        repoDir: `content/article/${uuid}/assets/`,
-    };
+	return {
+		urlPrefix: `/article/${uuid}/assets/`,
+		repoDir: `content/article/${uuid}/assets/`,
+	};
 }

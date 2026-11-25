@@ -13,21 +13,21 @@ import { getAuth } from "./auth";
  * fetch 呼び出し元がハンドリングする)。
  */
 export async function requireSession() {
-    const auth = await getAuth();
-    const session = await auth.api.getSession({
-        headers: getRequest().headers,
-    });
-    if (!session) {
-        throw new Response(
-            JSON.stringify({
-                error: "unauthorized",
-                message: "サインインが必要です (/auth/sign-in)",
-            }),
-            {
-                status: 401,
-                headers: { "content-type": "application/json" },
-            },
-        );
-    }
-    return session;
+	const auth = await getAuth();
+	const session = await auth.api.getSession({
+		headers: getRequest().headers,
+	});
+	if (!session) {
+		throw new Response(
+			JSON.stringify({
+				error: "unauthorized",
+				message: "サインインが必要です (/auth/sign-in)",
+			}),
+			{
+				status: 401,
+				headers: { "content-type": "application/json" },
+			},
+		);
+	}
+	return session;
 }

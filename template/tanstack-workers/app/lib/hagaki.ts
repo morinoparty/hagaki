@@ -15,33 +15,32 @@ let cached: HagakiClient | null = null;
  * - HAGAKI_CDN_BASE_URL
  */
 export async function getHagakiClient(): Promise<HagakiClient> {
-    if (cached) return cached;
-    const owner = requireEnv("HAGAKI_GITHUB_OWNER");
-    const repo = requireEnv("HAGAKI_GITHUB_REPO");
-    const token = requireEnv("HAGAKI_GITHUB_TOKEN");
-    const cdnBaseUrl = requireEnv("HAGAKI_CDN_BASE_URL");
-    cached = createHagakiClient({
-        github: {
-            owner,
-            repo,
-            branch: readEnv("HAGAKI_GITHUB_BRANCH") ?? "main",
-            contentPath:
-                readEnv("HAGAKI_GITHUB_CONTENT_PATH") ?? "content/article",
-            auth: token,
-        },
-        content: { cdnBaseUrl },
-    });
-    return cached;
+	if (cached) return cached;
+	const owner = requireEnv("HAGAKI_GITHUB_OWNER");
+	const repo = requireEnv("HAGAKI_GITHUB_REPO");
+	const token = requireEnv("HAGAKI_GITHUB_TOKEN");
+	const cdnBaseUrl = requireEnv("HAGAKI_CDN_BASE_URL");
+	cached = createHagakiClient({
+		github: {
+			owner,
+			repo,
+			branch: readEnv("HAGAKI_GITHUB_BRANCH") ?? "main",
+			contentPath: readEnv("HAGAKI_GITHUB_CONTENT_PATH") ?? "content/article",
+			auth: token,
+		},
+		content: { cdnBaseUrl },
+	});
+	return cached;
 }
 
 function readEnv(key: string): string | undefined {
-    return getOptionalStringEnv(env, key);
+	return getOptionalStringEnv(env, key);
 }
 
 function requireEnv(key: string): string {
-    const value = readEnv(key);
-    if (!value) {
-        throw new Error(`Missing required env var: ${key}`);
-    }
-    return value;
+	const value = readEnv(key);
+	if (!value) {
+		throw new Error(`Missing required env var: ${key}`);
+	}
+	return value;
 }

@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
 import {
-    analyzeImage,
-    encodeAnalyzedImage,
-    type ProcessImageOptions,
+	analyzeImage,
+	encodeAnalyzedImage,
+	type ProcessImageOptions,
 } from "../image/pipeline.js";
 import { extractImageComponentIds } from "../markdown/image-jsx.js";
 
@@ -15,31 +15,31 @@ import { extractImageComponentIds } from "../markdown/image-jsx.js";
 export type PendingStatus = "encoding" | "ready" | "error";
 
 export interface PendingEntry {
-    /** uuidv4 — doubles as the image id and file name (`<id>.avif`). */
-    id: string;
-    blurhash: string;
-    width: number;
-    height: number;
-    status: PendingStatus;
-    /** Cause of failure when `status === "error"`. */
-    error?: unknown;
-    /** The encoded image (`image/avif`), set once `status === "ready"`. */
-    blob?: Blob;
-    /**
-     * `blob:` object URL of {@link blob} for the in-editor preview, set once
-     * `status === "ready"`. Revoked by {@link removePending} /
-     * {@link clearAll}, so never store it anywhere that outlives the entry.
-     */
-    previewUrl?: string;
-    /** Resolves with the encoded blob, rejects if the encode failed. */
-    done: Promise<Blob>;
+	/** uuidv4 — doubles as the image id and file name (`<id>.avif`). */
+	id: string;
+	blurhash: string;
+	width: number;
+	height: number;
+	status: PendingStatus;
+	/** Cause of failure when `status === "error"`. */
+	error?: unknown;
+	/** The encoded image (`image/avif`), set once `status === "ready"`. */
+	blob?: Blob;
+	/**
+	 * `blob:` object URL of {@link blob} for the in-editor preview, set once
+	 * `status === "ready"`. Revoked by {@link removePending} /
+	 * {@link clearAll}, so never store it anywhere that outlives the entry.
+	 */
+	previewUrl?: string;
+	/** Resolves with the encoded blob, rejects if the encode failed. */
+	done: Promise<Blob>;
 }
 
 /** One image ready to be committed next to the post body. */
 export interface PendingImage {
-    imageId: string;
-    /** `image/avif` bytes. */
-    blob: Blob;
+	imageId: string;
+	/** `image/avif` bytes. */
+	blob: Blob;
 }
 
 /**
@@ -49,14 +49,14 @@ export interface PendingImage {
  * lived in this tab's memory).
  */
 export class PendingImageError extends Error {
-    constructor(
-        message: string,
-        readonly failedIds: string[],
-        readonly missingIds: string[],
-    ) {
-        super(message);
-        this.name = "PendingImageError";
-    }
+	constructor(
+		message: string,
+		readonly failedIds: string[],
+		readonly missingIds: string[],
+	) {
+		super(message);
+		this.name = "PendingImageError";
+	}
 }
 
 const store = new Map<string, PendingEntry>();
@@ -69,27 +69,27 @@ const listeners = new Set<() => void>();
  * operations must fail loudly rather than crash with a cryptic canvas error.
  */
 function assertBrowser(api: string): void {
-    if (typeof document === "undefined") {
-        throw new Error(
-            `hagaki/pending-images: ${api}() is browser-only and was called in a non-browser environment`,
-        );
-    }
+	if (typeof document === "undefined") {
+		throw new Error(
+			`hagaki/pending-images: ${api}() is browser-only and was called in a non-browser environment`,
+		);
+	}
 }
 
 function notify(): void {
-    for (const fn of listeners) fn();
+	for (const fn of listeners) fn();
 }
 
 function release(entry: PendingEntry): void {
-    if (entry.previewUrl) {
-        URL.revokeObjectURL(entry.previewUrl);
-        entry.previewUrl = undefined;
-    }
+	if (entry.previewUrl) {
+		URL.revokeObjectURL(entry.previewUrl);
+		entry.previewUrl = undefined;
+	}
 }
 
 export interface StartPendingInput {
-    file: File;
-    processOptions?: ProcessImageOptions;
+	file: File;
+	processOptions?: ProcessImageOptions;
 }
 
 /**
@@ -106,62 +106,59 @@ export interface StartPendingInput {
  * keeps its rejection observed when nobody awaits it.
  */
 export async function startPending(
-    input: StartPendingInput,
+	input: StartPendingInput,
 ): Promise<PendingEntry> {
-    assertBrowser("startPending");
-    const id = uuidv4();
-    const analyzed = await analyzeImage(input.file, input.processOptions);
+	assertBrowser("startPending");
+	const id = uuidv4();
+	const analyzed = await analyzeImage(input.file, input.processOptions);
 
-    const entry: PendingEntry = {
-        id,
-        blurhash: analyzed.blurhash,
-        width: analyzed.width,
-        height: analyzed.height,
-        status: "encoding",
-        // Assigned right below — the encode chain needs `entry` in scope.
-        done: undefined as unknown as Promise<Blob>,
-    };
-    entry.done = (async () => {
-        try {
-            // Let the caller insert the placeholder before the synchronous
-            // WASM encode blocks the main thread. This does not wait for a
-            // frame, so a paint in between is likely but not guaranteed.
-            await new Promise<void>((resolve) => setTimeout(resolve, 0));
-            const avif = await encodeAnalyzedImage(
-                analyzed,
-                input.processOptions,
-            );
-            const blob = new Blob([avif], { type: "image/avif" });
-            entry.blob = blob;
-            entry.status = "ready";
-            // An entry removed mid-encode must not mint an object URL that
-            // nothing would ever revoke.
-            if (store.get(id) === entry) {
-                entry.previewUrl = URL.createObjectURL(blob);
-            }
-            notify();
-            return blob;
-        } catch (e) {
-            entry.status = "error";
-            entry.error = e;
-            notify();
-            throw e;
-        }
-    })();
-    entry.done.catch(() => {});
+	const entry: PendingEntry = {
+		id,
+		blurhash: analyzed.blurhash,
+		width: analyzed.width,
+		height: analyzed.height,
+		status: "encoding",
+		// Assigned right below — the encode chain needs `entry` in scope.
+		done: undefined as unknown as Promise<Blob>,
+	};
+	entry.done = (async () => {
+		try {
+			// Let the caller insert the placeholder before the synchronous
+			// WASM encode blocks the main thread. This does not wait for a
+			// frame, so a paint in between is likely but not guaranteed.
+			await new Promise<void>((resolve) => setTimeout(resolve, 0));
+			const avif = await encodeAnalyzedImage(analyzed, input.processOptions);
+			const blob = new Blob([avif], { type: "image/avif" });
+			entry.blob = blob;
+			entry.status = "ready";
+			// An entry removed mid-encode must not mint an object URL that
+			// nothing would ever revoke.
+			if (store.get(id) === entry) {
+				entry.previewUrl = URL.createObjectURL(blob);
+			}
+			notify();
+			return blob;
+		} catch (e) {
+			entry.status = "error";
+			entry.error = e;
+			notify();
+			throw e;
+		}
+	})();
+	entry.done.catch(() => {});
 
-    store.set(id, entry);
-    notify();
-    return entry;
+	store.set(id, entry);
+	notify();
+	return entry;
 }
 
 export function getPending(id: string): PendingEntry | undefined {
-    return store.get(id);
+	return store.get(id);
 }
 
 /** Snapshot of every entry, in insertion order. */
 export function listPending(): PendingEntry[] {
-    return [...store.values()];
+	return [...store.values()];
 }
 
 /**
@@ -171,18 +168,18 @@ export function listPending(): PendingEntry[] {
  * deploy, so the `blob:` preview is what keeps them visible.
  */
 export function removePending(id: string): void {
-    const entry = store.get(id);
-    if (!entry) return;
-    store.delete(id);
-    release(entry);
-    notify();
+	const entry = store.get(id);
+	if (!entry) return;
+	store.delete(id);
+	release(entry);
+	notify();
 }
 
 /** Drop every entry and revoke every preview URL. */
 export function clearAll(): void {
-    for (const entry of store.values()) release(entry);
-    store.clear();
-    notify();
+	for (const entry of store.values()) release(entry);
+	store.clear();
+	notify();
 }
 
 /**
@@ -190,25 +187,25 @@ export function clearAll(): void {
  * save button.
  */
 export function hasActive(): boolean {
-    for (const entry of store.values()) {
-        if (entry.status === "encoding") return true;
-    }
-    return false;
+	for (const entry of store.values()) {
+		if (entry.status === "encoding") return true;
+	}
+	return false;
 }
 
 /** True if any entry ended in `status === "error"`. */
 export function hasErrors(): boolean {
-    for (const entry of store.values()) {
-        if (entry.status === "error") return true;
-    }
-    return false;
+	for (const entry of store.values()) {
+		if (entry.status === "error") return true;
+	}
+	return false;
 }
 
 export function subscribe(fn: () => void): () => void {
-    listeners.add(fn);
-    return () => {
-        listeners.delete(fn);
-    };
+	listeners.add(fn);
+	return () => {
+		listeners.delete(fn);
+	};
 }
 
 /**
@@ -220,15 +217,15 @@ export function subscribe(fn: () => void): () => void {
  * its encoding / ready entry must still be there when it does.
  */
 export function sweepOrphanedErrors(body: string): void {
-    let changed = false;
-    for (const entry of [...store.values()]) {
-        if (entry.status === "error" && !body.includes(entry.id)) {
-            store.delete(entry.id);
-            release(entry);
-            changed = true;
-        }
-    }
-    if (changed) notify();
+	let changed = false;
+	for (const entry of [...store.values()]) {
+		if (entry.status === "error" && !body.includes(entry.id)) {
+			store.delete(entry.id);
+			release(entry);
+			changed = true;
+		}
+	}
+	if (changed) notify();
 }
 
 /**
@@ -238,11 +235,11 @@ export function sweepOrphanedErrors(body: string): void {
  * {@link collectPendingImages}.
  */
 export function findUncommittedImageIds(
-    body: string,
-    committedBody = "",
+	body: string,
+	committedBody = "",
 ): string[] {
-    const committed = new Set(extractImageComponentIds(committedBody));
-    return extractImageComponentIds(body).filter((id) => !committed.has(id));
+	const committed = new Set(extractImageComponentIds(committedBody));
+	return extractImageComponentIds(body).filter((id) => !committed.has(id));
 }
 
 /**
@@ -257,36 +254,34 @@ export function findUncommittedImageIds(
  * editor unmounts.
  */
 export async function collectPendingImages(
-    ids: Iterable<string>,
+	ids: Iterable<string>,
 ): Promise<PendingImage[]> {
-    const entries: PendingEntry[] = [];
-    const missingIds: string[] = [];
-    for (const id of new Set(ids)) {
-        const entry = store.get(id);
-        if (entry) entries.push(entry);
-        else missingIds.push(id);
-    }
-    const results = await Promise.allSettled(
-        entries.map((entry) => entry.done),
-    );
-    const images: PendingImage[] = [];
-    const failedIds: string[] = [];
-    results.forEach((result, i) => {
-        const imageId = (entries[i] as PendingEntry).id;
-        if (result.status === "fulfilled") {
-            images.push({ imageId, blob: result.value });
-        } else {
-            failedIds.push(imageId);
-        }
-    });
-    if (failedIds.length > 0 || missingIds.length > 0) {
-        throw new PendingImageError(
-            failedIds.length > 0
-                ? "Some images failed to encode. Remove or re-insert them, then save again."
-                : "Some images are no longer in memory (was the page reloaded?). Re-insert them, then save again.",
-            failedIds,
-            missingIds,
-        );
-    }
-    return images;
+	const entries: PendingEntry[] = [];
+	const missingIds: string[] = [];
+	for (const id of new Set(ids)) {
+		const entry = store.get(id);
+		if (entry) entries.push(entry);
+		else missingIds.push(id);
+	}
+	const results = await Promise.allSettled(entries.map((entry) => entry.done));
+	const images: PendingImage[] = [];
+	const failedIds: string[] = [];
+	results.forEach((result, i) => {
+		const imageId = (entries[i] as PendingEntry).id;
+		if (result.status === "fulfilled") {
+			images.push({ imageId, blob: result.value });
+		} else {
+			failedIds.push(imageId);
+		}
+	});
+	if (failedIds.length > 0 || missingIds.length > 0) {
+		throw new PendingImageError(
+			failedIds.length > 0
+				? "Some images failed to encode. Remove or re-insert them, then save again."
+				: "Some images are no longer in memory (was the page reloaded?). Re-insert them, then save again.",
+			failedIds,
+			missingIds,
+		);
+	}
+	return images;
 }

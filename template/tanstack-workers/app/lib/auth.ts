@@ -10,47 +10,47 @@ import { tanstackStartCookies } from "better-auth/tanstack-start";
 const authCache = new Map<string, Promise<Auth>>();
 
 async function buildAuth(baseURL: string) {
-    // AUTH_SECRET は Worker secret (`.dev.vars` / `cf deploy --secrets-file`)。
-    const secret = env.AUTH_SECRET;
+	// AUTH_SECRET は Worker secret (`.dev.vars` / `cf deploy --secrets-file`)。
+	const secret = env.AUTH_SECRET;
 
-    return betterAuth({
-        baseURL,
-        secret,
-        session: {
-            cookieCache: {
-                enabled: true,
-                // DB-less 構成では session の実体がこの暗号化 Cookie に載る。
-                // 既定 (300s) のままだと失効時のフォールバック先(メモリ
-                // アダプタ)が Workers では isolate ごとに空なので、実効
-                // セッション寿命が約 5 分になってしまう。明示的に延ばす。
-                // 推奨: 1〜8 時間。長くするほどサインアウト・権限変更の
-                // 反映が遅れる点とのトレードオフ。
-                maxAge: 60 * 60 * 4,
-            },
-        },
-        plugins: [
-            genericOAuth({
-                config: [
-                    {
-                        providerId: "MineAuth",
-                        clientId: env.CLIENT_ID,
-                        // token_endpoint_auth_method: "none" のため空文字列
-                        clientSecret: "",
-                        pkce: true,
-                        discoveryUrl: `${env.MAIN_SERVER_URL}/.well-known/openid-configuration`,
-                        // roles / preferred_username を userinfo で受け取る
-                        // ため明示。sub (プロバイダのユーザー ID) は
-                        // committer 解決に使い、hagaki の userId になる
-                        // (session.user.id は DB-less では不安定なので
-                        // git committer のキーにしない — lib/committer.ts)。
-                        scopes: ["openid", "profile", "email", "roles"],
-                    },
-                ],
-            }),
-            // Better Auth 公式の TanStack Start 向けクッキープラグイン(最後に置く)
-            tanstackStartCookies(),
-        ],
-    });
+	return betterAuth({
+		baseURL,
+		secret,
+		session: {
+			cookieCache: {
+				enabled: true,
+				// DB-less 構成では session の実体がこの暗号化 Cookie に載る。
+				// 既定 (300s) のままだと失効時のフォールバック先(メモリ
+				// アダプタ)が Workers では isolate ごとに空なので、実効
+				// セッション寿命が約 5 分になってしまう。明示的に延ばす。
+				// 推奨: 1〜8 時間。長くするほどサインアウト・権限変更の
+				// 反映が遅れる点とのトレードオフ。
+				maxAge: 60 * 60 * 4,
+			},
+		},
+		plugins: [
+			genericOAuth({
+				config: [
+					{
+						providerId: "MineAuth",
+						clientId: env.CLIENT_ID,
+						// token_endpoint_auth_method: "none" のため空文字列
+						clientSecret: "",
+						pkce: true,
+						discoveryUrl: `${env.MAIN_SERVER_URL}/.well-known/openid-configuration`,
+						// roles / preferred_username を userinfo で受け取る
+						// ため明示。sub (プロバイダのユーザー ID) は
+						// committer 解決に使い、hagaki の userId になる
+						// (session.user.id は DB-less では不安定なので
+						// git committer のキーにしない — lib/committer.ts)。
+						scopes: ["openid", "profile", "email", "roles"],
+					},
+				],
+			}),
+			// Better Auth 公式の TanStack Start 向けクッキープラグイン(最後に置く)
+			tanstackStartCookies(),
+		],
+	});
 }
 
 // プラグイン(genericOAuth / tanstackStartCookies)のエンドポイント型を
@@ -63,11 +63,11 @@ type Auth = Awaited<ReturnType<typeof buildAuth>>;
  * ハンドラー)からのみ呼び出せる。
  */
 export function getAuth(): Promise<Auth> {
-    const origin = new URL(getRequest().url).origin;
-    let auth = authCache.get(origin);
-    if (!auth) {
-        auth = buildAuth(origin);
-        authCache.set(origin, auth);
-    }
-    return auth;
+	const origin = new URL(getRequest().url).origin;
+	let auth = authCache.get(origin);
+	if (!auth) {
+		auth = buildAuth(origin);
+		authCache.set(origin, auth);
+	}
+	return auth;
 }

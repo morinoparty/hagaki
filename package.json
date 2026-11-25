@@ -1,117 +1,117 @@
 {
-    "name": "@morinoparty/hagaki",
-    "version": "0.1.0",
-    "description": "Headless GitHub-backed markdown editor and content API",
-    "type": "module",
-    "packageManager": "pnpm@12.14.0",
-    "license": "MIT",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/morinoparty/hagaki.git"
-    },
-    "publishConfig": {
-        "registry": "https://registry.npmjs.org/",
-        "access": "public"
-    },
-    "sideEffects": false,
-    "files": [
-        "dist",
-        "README.md"
-    ],
-    "exports": {
-        ".": {
-            "types": "./dist/index.d.ts",
-            "import": "./dist/index.js"
-        },
-        "./react": {
-            "types": "./dist/react.d.ts",
-            "import": "./dist/react.js"
-        },
-        "./editor": {
-            "types": "./dist/editor.d.ts",
-            "import": "./dist/editor.js"
-        },
-        "./image": {
-            "types": "./dist/image.d.ts",
-            "import": "./dist/image.js"
-        },
-        "./markdown": {
-            "types": "./dist/markdown.d.ts",
-            "import": "./dist/markdown.js"
-        },
-        "./pending-images": {
-            "types": "./dist/pending-images.d.ts",
-            "import": "./dist/pending-images.js"
-        },
-        "./auth/better-auth": {
-            "types": "./dist/auth/better-auth.d.ts",
-            "import": "./dist/auth/better-auth.js"
-        },
-        "./content-worker": {
-            "types": "./dist/content-worker.d.ts",
-            "import": "./dist/content-worker.js"
-        }
-    },
-    "bin": {
-        "hagaki": "./dist/cli.js"
-    },
-    "scripts": {
-        "build": "tsdown",
-        "dev": "tsdown --watch",
-        "typecheck": "tsc --noEmit",
-        "clean": "rm -rf dist",
-        "check": "biome check ./ --write",
-        "check:ci": "biome check ./"
-    },
-    "dependencies": {
-        "@jsquash/avif": "^2.1.1",
-        "blurhash": "^2.0.5",
-        "gray-matter": "^4.0.3",
-        "hono": "^4.13.20",
-        "octokit": "^5.0.5",
-        "remark-mdx": "^3.1.1",
-        "remark-parse": "^11.0.0",
-        "unified": "^11.0.5",
-        "uuid": "^14.0.3"
-    },
-    "peerDependencies": {
-        "@mdxeditor/editor": "^4",
-        "@mdxeditor/gurx": "^1.2.4",
-        "lexical": "^0.53.0",
-        "react": ">=18",
-        "react-dom": ">=18"
-    },
-    "peerDependenciesMeta": {
-        "@mdxeditor/editor": {
-            "optional": true
-        },
-        "react": {
-            "optional": true
-        },
-        "react-dom": {
-            "optional": true
-        },
-        "lexical": {
-            "optional": true
-        },
-        "@mdxeditor/gurx": {
-            "optional": true
-        }
-    },
-    "devDependencies": {
-        "@biomejs/biome": "2.6.8",
-        "@mdxeditor/editor": "^4.5.0",
-        "@mdxeditor/gurx": "^1.2.4",
-        "@types/node": "^26.6.6",
-        "@types/react": "^19.3.0",
-        "@types/react-dom": "^19.3.0",
-        "lexical": "^0.53.0",
-        "react": "^19.3.1",
-        "react-dom": "^19.3.1",
-        "tsdown": "^0.23.7",
-        "typescript": "^7.0.2"
-    },
-    "engines": {
-        "node": ">=26.12.0"
-    }
+	"name": "@morinoparty/hagaki",
+	"version": "0.1.0",
+	"description": "Headless GitHub-backed markdown editor and content API",
+	"type": "module",
+	"packageManager": "pnpm@12.14.0",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/morinoparty/hagaki.git"
+	},
+	"publishConfig": {
+		"registry": "https://registry.npmjs.org/",
+		"access": "public"
+	},
+	"sideEffects": false,
+	"files": [
+		"dist",
+		"README.md"
+	],
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		},
+		"./react": {
+			"types": "./dist/react.d.ts",
+			"import": "./dist/react.js"
+		},
+		"./editor": {
+			"types": "./dist/editor.d.ts",
+			"import": "./dist/editor.js"
+		},
+		"./image": {
+			"types": "./dist/image.d.ts",
+			"import": "./dist/image.js"
+		},
+		"./markdown": {
+			"types": "./dist/markdown.d.ts",
+			"import": "./dist/markdown.js"
+		},
+		"./pending-images": {
+			"types": "./dist/pending-images.d.ts",
+			"import": "./dist/pending-images.js"
+		},
+		"./auth/better-auth": {
+			"types": "./dist/auth/better-auth.d.ts",
+			"import": "./dist/auth/better-auth.js"
+		},
+		"./content-worker": {
+			"types": "./dist/content-worker.d.ts",
+			"import": "./dist/content-worker.js"
+		}
+	},
+	"bin": {
+		"hagaki": "./dist/cli.js"
+	},
+	"scripts": {
+		"build": "tsdown",
+		"dev": "tsdown --watch",
+		"typecheck": "tsc --noEmit",
+		"clean": "rm -rf dist",
+		"check": "biome check ./ --write",
+		"check:ci": "biome check ./"
+	},
+	"dependencies": {
+		"@jsquash/avif": "^2.1.1",
+		"blurhash": "^2.0.5",
+		"gray-matter": "^4.0.3",
+		"hono": "^4.13.20",
+		"octokit": "^5.0.5",
+		"remark-mdx": "^3.1.1",
+		"remark-parse": "^11.0.0",
+		"unified": "^11.0.5",
+		"uuid": "^14.0.3"
+	},
+	"peerDependencies": {
+		"@mdxeditor/editor": "^4",
+		"@mdxeditor/gurx": "^1.2.4",
+		"lexical": "^0.53.0",
+		"react": ">=18",
+		"react-dom": ">=18"
+	},
+	"peerDependenciesMeta": {
+		"@mdxeditor/editor": {
+			"optional": true
+		},
+		"react": {
+			"optional": true
+		},
+		"react-dom": {
+			"optional": true
+		},
+		"lexical": {
+			"optional": true
+		},
+		"@mdxeditor/gurx": {
+			"optional": true
+		}
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.6.8",
+		"@mdxeditor/editor": "^4.5.0",
+		"@mdxeditor/gurx": "^1.2.4",
+		"@types/node": "^26.6.6",
+		"@types/react": "^19.3.0",
+		"@types/react-dom": "^19.3.0",
+		"lexical": "^0.53.0",
+		"react": "^19.3.1",
+		"react-dom": "^19.3.1",
+		"tsdown": "^0.23.7",
+		"typescript": "^7.0.2"
+	},
+	"engines": {
+		"node": ">=26.12.0"
+	}
 }
