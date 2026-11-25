@@ -4,27 +4,27 @@ import * as path from "node:path";
 import { promisify } from "node:util";
 import matter from "gray-matter";
 import {
-    parseOptionValues,
-    parseThumbnail,
-    toIsoDate,
+	parseOptionValues,
+	parseThumbnail,
+	toIsoDate,
 } from "../api/content.js";
 import { summarizeEditors } from "../api/editors.js";
 import { toUrlSlug } from "../api/slug.js";
 import type {
-    ArticleInfo,
-    ArticleSummary,
-    WikiHistoryEntry,
+	ArticleInfo,
+	ArticleSummary,
+	WikiHistoryEntry,
 } from "../api/types.js";
 import { userIdFromCommitterName } from "../auth/index.js";
 
 const execFileAsync = promisify(execFile);
 
 async function ensureDir(dir: string) {
-    await fs.mkdir(dir, { recursive: true });
+	await fs.mkdir(dir, { recursive: true });
 }
 
 async function writeJson(filePath: string, value: unknown) {
-    await fs.writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`);
+	await fs.writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`);
 }
 
 /**
@@ -33,21 +33,21 @@ async function writeJson(filePath: string, value: unknown) {
  * before the migration.
  */
 function importedHistory(data: Record<string, unknown>): WikiHistoryEntry[] {
-    const modified = data.modified;
-    if (!Array.isArray(modified)) return [];
-    const entries: WikiHistoryEntry[] = [];
-    for (const raw of modified) {
-        if (typeof raw !== "object" || raw === null) continue;
-        const entry = raw as { date?: unknown; userId?: unknown };
-        const date = toIsoDate(entry.date);
-        if (!date) continue;
-        entries.push({
-            date,
-            userId: typeof entry.userId === "string" ? entry.userId : null,
-            source: "imported",
-        });
-    }
-    return entries;
+	const modified = data.modified;
+	if (!Array.isArray(modified)) return [];
+	const entries: WikiHistoryEntry[] = [];
+	for (const raw of modified) {
+		if (typeof raw !== "object" || raw === null) continue;
+		const entry = raw as { date?: unknown; userId?: unknown };
+		const date = toIsoDate(entry.date);
+		if (!date) continue;
+		entries.push({
+			date,
+			userId: typeof entry.userId === "string" ? entry.userId : null,
+			source: "imported",
+		});
+	}
+	return entries;
 }
 
 /**
@@ -57,39 +57,39 @@ function importedHistory(data: Record<string, unknown>): WikiHistoryEntry[] {
  * check out with `fetch-depth: 0`.
  */
 async function gitHistory(
-    contentDir: string,
-    articleDirName: string,
+	contentDir: string,
+	articleDirName: string,
 ): Promise<WikiHistoryEntry[]> {
-    try {
-        const { stdout } = await execFileAsync(
-            "git",
-            [
-                "log",
-                "--format=%H%x09%aI%x09%an",
-                "--",
-                path.join("article", articleDirName),
-            ],
-            { cwd: contentDir },
-        );
-        return stdout
-            .trim()
-            .split("\n")
-            .filter(Boolean)
-            .map((line) => {
-                const [commit, rawDate, name] = line.split("\t");
-                return {
-                    date: toIsoDate(rawDate) ?? "",
-                    userId: userIdFromCommitterName(name ?? ""),
-                    source: "git" as const,
-                    commit,
-                };
-            })
-            .filter((e) => e.date)
-            .reverse();
-    } catch {
-        // Not a git checkout (or git unavailable) — imported history only.
-        return [];
-    }
+	try {
+		const { stdout } = await execFileAsync(
+			"git",
+			[
+				"log",
+				"--format=%H%x09%aI%x09%an",
+				"--",
+				path.join("article", articleDirName),
+			],
+			{ cwd: contentDir },
+		);
+		return stdout
+			.trim()
+			.split("\n")
+			.filter(Boolean)
+			.map((line) => {
+				const [commit, rawDate, name] = line.split("\t");
+				return {
+					date: toIsoDate(rawDate) ?? "",
+					userId: userIdFromCommitterName(name ?? ""),
+					source: "git" as const,
+					commit,
+				};
+			})
+			.filter((e) => e.date)
+			.reverse();
+	} catch {
+		// Not a git checkout (or git unavailable) — imported history only.
+		return [];
+	}
 }
 
 /**
@@ -106,96 +106,96 @@ async function gitHistory(
  * `slug-index.json`; the content worker blocks their `article/<uuid>/` files.
  */
 async function generateArticleLists(contentDir: string) {
-    const articleDir = path.join(contentDir, "article");
-    await ensureDir(articleDir);
-    const entries = await fs.readdir(articleDir, { withFileTypes: true });
-    const manifest: ArticleSummary[] = [];
-    const slugIndex: Record<string, string> = {};
-    let drafts = 0;
-    for (const entry of entries) {
-        if (!entry.isDirectory()) continue;
-        const indexPath = path.join(articleDir, entry.name, "index.mdx");
-        let raw: string;
-        try {
-            raw = await fs.readFile(indexPath, "utf-8");
-        } catch {
-            console.warn(`skip ${entry.name}: missing index.mdx`);
-            continue;
-        }
-        const { data } = matter(raw);
-        if (!data.uuid) {
-            console.warn(`uuid missing in ${entry.name}/index.mdx`);
-        } else if (String(data.uuid) !== entry.name) {
-            // The worker and getPostByUuid serve `article/<dir>/`, so the
-            // directory name is the uuid that counts; the frontmatter value
-            // is only reported, never trusted for the manifests.
-            console.warn(
-                `uuid mismatch in ${entry.name}/index.mdx: frontmatter uuid "${data.uuid}" differs from its directory name; using the directory name`,
-            );
-        }
-        if (!data.slug) {
-            console.warn(`slug missing in ${entry.name}/index.mdx`);
-        }
+	const articleDir = path.join(contentDir, "article");
+	await ensureDir(articleDir);
+	const entries = await fs.readdir(articleDir, { withFileTypes: true });
+	const manifest: ArticleSummary[] = [];
+	const slugIndex: Record<string, string> = {};
+	let drafts = 0;
+	for (const entry of entries) {
+		if (!entry.isDirectory()) continue;
+		const indexPath = path.join(articleDir, entry.name, "index.mdx");
+		let raw: string;
+		try {
+			raw = await fs.readFile(indexPath, "utf-8");
+		} catch {
+			console.warn(`skip ${entry.name}: missing index.mdx`);
+			continue;
+		}
+		const { data } = matter(raw);
+		if (!data.uuid) {
+			console.warn(`uuid missing in ${entry.name}/index.mdx`);
+		} else if (String(data.uuid) !== entry.name) {
+			// The worker and getPostByUuid serve `article/<dir>/`, so the
+			// directory name is the uuid that counts; the frontmatter value
+			// is only reported, never trusted for the manifests.
+			console.warn(
+				`uuid mismatch in ${entry.name}/index.mdx: frontmatter uuid "${data.uuid}" differs from its directory name; using the directory name`,
+			);
+		}
+		if (!data.slug) {
+			console.warn(`slug missing in ${entry.name}/index.mdx`);
+		}
 
-        const history = [
-            ...importedHistory(data),
-            ...(await gitHistory(contentDir, entry.name)),
-        ].sort((a, b) => a.date.localeCompare(b.date));
+		const history = [
+			...importedHistory(data),
+			...(await gitHistory(contentDir, entry.name)),
+		].sort((a, b) => a.date.localeCompare(b.date));
 
-        // Bake the post's option values in too: without them a listing built
-        // from `article.json` can't filter on what a category declared.
-        const option = parseOptionValues(data.option);
+		// Bake the post's option values in too: without them a listing built
+		// from `article.json` can't filter on what a category declared.
+		const option = parseOptionValues(data.option);
 
-        const info: ArticleInfo = {
-            title: data.title ?? "",
-            slug: toUrlSlug(data.slug ?? entry.name),
-            // Always the directory name, so slug-index and article.json point
-            // at the directory the worker actually serves.
-            uuid: entry.name,
-            category: data.category ?? "",
-            description: data.description ?? "",
-            thumbnail: parseThumbnail(data.thumbnail),
-            ...(option ? { option } : {}),
-            created: history[0]?.date ?? null,
-            updated: history[history.length - 1]?.date ?? null,
-            history,
-        };
+		const info: ArticleInfo = {
+			title: data.title ?? "",
+			slug: toUrlSlug(data.slug ?? entry.name),
+			// Always the directory name, so slug-index and article.json point
+			// at the directory the worker actually serves.
+			uuid: entry.name,
+			category: data.category ?? "",
+			description: data.description ?? "",
+			thumbnail: parseThumbnail(data.thumbnail),
+			...(option ? { option } : {}),
+			created: history[0]?.date ?? null,
+			updated: history[history.length - 1]?.date ?? null,
+			history,
+		};
 
-        await writeJson(path.join(articleDir, entry.name, "info.json"), info);
+		await writeJson(path.join(articleDir, entry.name, "info.json"), info);
 
-        if (data.draft === true) {
-            drafts += 1;
-            continue;
-        }
-        const existing = slugIndex[info.slug];
-        if (existing) {
-            throw new Error(
-                `duplicate slug "${info.slug}": ${existing} and ${info.uuid}`,
-            );
-        }
-        const { history: _history, ...summary } = info;
-        manifest.push({ ...summary, editors: summarizeEditors(history) });
-        slugIndex[info.slug] = info.uuid;
-    }
-    await writeJson(path.join(contentDir, "article.json"), manifest);
-    await writeJson(path.join(contentDir, "slug-index.json"), slugIndex);
-    console.info(
-        `article.json: ${manifest.length} posts${drafts > 0 ? ` (${drafts} drafts excluded)` : ""}`,
-    );
+		if (data.draft === true) {
+			drafts += 1;
+			continue;
+		}
+		const existing = slugIndex[info.slug];
+		if (existing) {
+			throw new Error(
+				`duplicate slug "${info.slug}": ${existing} and ${info.uuid}`,
+			);
+		}
+		const { history: _history, ...summary } = info;
+		manifest.push({ ...summary, editors: summarizeEditors(history) });
+		slugIndex[info.slug] = info.uuid;
+	}
+	await writeJson(path.join(contentDir, "article.json"), manifest);
+	await writeJson(path.join(contentDir, "slug-index.json"), slugIndex);
+	console.info(
+		`article.json: ${manifest.length} posts${drafts > 0 ? ` (${drafts} drafts excluded)` : ""}`,
+	);
 }
 
 async function generateCategoriesList(contentDir: string) {
-    const categoriesDir = path.join(contentDir, "categories");
-    await ensureDir(categoriesDir);
-    const files = await fs.readdir(categoriesDir);
-    const categories: Array<Record<string, unknown>> = [];
-    for (const file of files) {
-        if (!file.endsWith(".json")) continue;
-        const raw = await fs.readFile(path.join(categoriesDir, file), "utf-8");
-        categories.push(JSON.parse(raw));
-    }
-    await writeJson(path.join(contentDir, "categories.json"), categories);
-    console.info(`categories.json: ${categories.length} categories`);
+	const categoriesDir = path.join(contentDir, "categories");
+	await ensureDir(categoriesDir);
+	const files = await fs.readdir(categoriesDir);
+	const categories: Array<Record<string, unknown>> = [];
+	for (const file of files) {
+		if (!file.endsWith(".json")) continue;
+		const raw = await fs.readFile(path.join(categoriesDir, file), "utf-8");
+		categories.push(JSON.parse(raw));
+	}
+	await writeJson(path.join(contentDir, "categories.json"), categories);
+	console.info(`categories.json: ${categories.length} categories`);
 }
 
 /**
@@ -204,10 +204,10 @@ async function generateCategoriesList(contentDir: string) {
  * fails instead of producing empty manifests.
  */
 export async function generateManifests(contentDir: string) {
-    const stat = await fs.stat(contentDir).catch(() => null);
-    if (!stat?.isDirectory()) {
-        throw new Error(`content directory not found: ${contentDir}`);
-    }
-    await generateArticleLists(contentDir);
-    await generateCategoriesList(contentDir);
+	const stat = await fs.stat(contentDir).catch(() => null);
+	if (!stat?.isDirectory()) {
+		throw new Error(`content directory not found: ${contentDir}`);
+	}
+	await generateArticleLists(contentDir);
+	await generateCategoriesList(contentDir);
 }

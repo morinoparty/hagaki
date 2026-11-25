@@ -3,21 +3,21 @@ import { extractImageComponentIds } from "./image-jsx.js";
 const IMG_REGEX = /!\[[^\]]*\]\(([^\s)]+)(?:\s+"[^"]*")?\)/g;
 
 export interface ImagePathConfig {
-    /**
-     * URL prefix as written in the markdown body, e.g. `"/img/"`. Used to
-     * detect "this image belongs to my repo" references.
-     */
-    urlPrefix: string;
-    /**
-     * Matching directory inside the GitHub repository, e.g. `"content/img/"`.
-     * Image URLs whose path lives under {@link urlPrefix} are translated to
-     * paths under this directory.
-     */
-    repoDir: string;
+	/**
+	 * URL prefix as written in the markdown body, e.g. `"/img/"`. Used to
+	 * detect "this image belongs to my repo" references.
+	 */
+	urlPrefix: string;
+	/**
+	 * Matching directory inside the GitHub repository, e.g. `"content/img/"`.
+	 * Image URLs whose path lives under {@link urlPrefix} are translated to
+	 * paths under this directory.
+	 */
+	repoDir: string;
 }
 
 function normalizePrefix(value: string): string {
-    return value.endsWith("/") ? value : `${value}/`;
+	return value.endsWith("/") ? value : `${value}/`;
 }
 
 /**
@@ -34,23 +34,23 @@ function normalizePrefix(value: string): string {
  * image blobs should be cleaned up when the post is saved.
  */
 export function extractRepoImagePaths(
-    markdown: string,
-    config: ImagePathConfig,
+	markdown: string,
+	config: ImagePathConfig,
 ): string[] {
-    const urlPrefix = normalizePrefix(config.urlPrefix);
-    const repoDir = normalizePrefix(config.repoDir);
-    const paths = new Set<string>();
-    for (const match of markdown.matchAll(IMG_REGEX)) {
-        const url = match[1];
-        if (!url?.startsWith(urlPrefix)) continue;
-        const filename = url.slice(urlPrefix.length);
-        if (!filename) continue;
-        paths.add(`${repoDir}${filename}`);
-    }
-    for (const id of extractImageComponentIds(markdown)) {
-        paths.add(`${repoDir}${id}.avif`);
-    }
-    return [...paths];
+	const urlPrefix = normalizePrefix(config.urlPrefix);
+	const repoDir = normalizePrefix(config.repoDir);
+	const paths = new Set<string>();
+	for (const match of markdown.matchAll(IMG_REGEX)) {
+		const url = match[1];
+		if (!url?.startsWith(urlPrefix)) continue;
+		const filename = url.slice(urlPrefix.length);
+		if (!filename) continue;
+		paths.add(`${repoDir}${filename}`);
+	}
+	for (const id of extractImageComponentIds(markdown)) {
+		paths.add(`${repoDir}${id}.avif`);
+	}
+	return [...paths];
 }
 
 /**
@@ -60,12 +60,12 @@ export function extractRepoImagePaths(
  * that updates the post.
  */
 export function diffRemovedImagePaths(
-    oldBody: string,
-    newBody: string,
-    config: ImagePathConfig,
+	oldBody: string,
+	newBody: string,
+	config: ImagePathConfig,
 ): string[] {
-    const before = extractRepoImagePaths(oldBody, config);
-    if (before.length === 0) return [];
-    const after = new Set(extractRepoImagePaths(newBody, config));
-    return before.filter((path) => !after.has(path));
+	const before = extractRepoImagePaths(oldBody, config);
+	if (before.length === 0) return [];
+	const after = new Set(extractRepoImagePaths(newBody, config));
+	return before.filter((path) => !after.has(path));
 }

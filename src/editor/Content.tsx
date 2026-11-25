@@ -1,7 +1,7 @@
 "use client";
 
 export interface HagakiEditorContentProps {
-    className?: string;
+	className?: string;
 }
 
 /**
@@ -10,5 +10,5 @@ export interface HagakiEditorContentProps {
  * own — MDXEditor renders the editable surface.
  */
 export function Content(_props: HagakiEditorContentProps): null {
-    return null;
+	return null;
 }

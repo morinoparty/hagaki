@@ -29,20 +29,20 @@ content/
 
 YAML。gray-matter（js-yaml）でシリアライズされる形（2スペースインデント）に合わせる。
 
-| フィールド | 型 | 必須 | 説明 |
-| --- | --- | --- | --- |
-| `title` | string | ✓ | 記事タイトル |
-| `slug` | string | ✓ | URL 用スラッグ。変更可 |
-| `uuid` | string (UUID) | ✓ | ディレクトリ名と一致。不変 |
-| `category` | string | ✓ | カテゴリの `slug` を参照 |
-| `description` | string | ✓ | 概要。空なら `''` |
-| `draft` | boolean | – | `true` で下書き。公開記事では省略（`false` は書かない） |
-| `editor` | string[] | – | 編集者として指定する認証ユーザー ID（better-auth の `session.user.id`）の配列。空なら省略 |
-| `thumbnail` | object | – | サムネイル。無い記事では省略 |
-| `thumbnail.imageId` | string (UUID) | ✓* | `assets/<imageId>.avif` を指す。パスは uuid + imageId から導出できるので書かない |
-| `thumbnail.blurhash64` | string | ✓* | blurhash を **base64 エンコード**した文字列（下記参照） |
-| `option` | object | – | カテゴリが宣言した追加フィールドの値。無い記事では省略 |
-| `option.<key>` | string \| number \| boolean | – | [カテゴリの `option.<key>`](#カテゴリcategoriesslugjson) に対応する値 |
+| フィールド             | 型                          | 必須 | 説明                                                                                      |
+| ---------------------- | --------------------------- | ---- | ----------------------------------------------------------------------------------------- |
+| `title`                | string                      | ✓    | 記事タイトル                                                                              |
+| `slug`                 | string                      | ✓    | URL 用スラッグ。変更可                                                                    |
+| `uuid`                 | string (UUID)               | ✓    | ディレクトリ名と一致。不変                                                                |
+| `category`             | string                      | ✓    | カテゴリの `slug` を参照                                                                  |
+| `description`          | string                      | ✓    | 概要。空なら `''`                                                                         |
+| `draft`                | boolean                     | –    | `true` で下書き。公開記事では省略（`false` は書かない）                                   |
+| `editor`               | string[]                    | –    | 編集者として指定する認証ユーザー ID（better-auth の `session.user.id`）の配列。空なら省略 |
+| `thumbnail`            | object                      | –    | サムネイル。無い記事では省略                                                              |
+| `thumbnail.imageId`    | string (UUID)               | ✓*   | `assets/<imageId>.avif` を指す。パスは uuid + imageId から導出できるので書かない          |
+| `thumbnail.blurhash64` | string                      | ✓*   | blurhash を **base64 エンコード**した文字列（下記参照）                                   |
+| `option`               | object                      | –    | カテゴリが宣言した追加フィールドの値。無い記事では省略                                    |
+| `option.<key>`         | string \| number \| boolean | –    | [カテゴリの `option.<key>`](#カテゴリcategoriesslugjson) に対応する値                     |
 
 \* `thumbnail` を書く場合は必須。
 
@@ -120,10 +120,10 @@ committer 名が `"<表示名> (<userId>)"` になるため、コミットから
 `modified` はそれを補うためだけのフィールドで、別システムから移行した記事の
 **git 以前の編集履歴**を保存する場所。移行記事以外では省略する。
 
-| フィールド | 型 | 説明 |
-| --- | --- | --- |
-| `modified[].date` | string (ISO 8601 UTC) | 例: `2024-06-19T15:00:00.000Z` |
-| `modified[].userId` | string | 編集したユーザーの認証ユーザー ID（git 履歴の `userId` と同じ ID 空間） |
+| フィールド          | 型                    | 説明                                                                    |
+| ------------------- | --------------------- | ----------------------------------------------------------------------- |
+| `modified[].date`   | string (ISO 8601 UTC) | 例: `2024-06-19T15:00:00.000Z`                                          |
+| `modified[].userId` | string                | 編集したユーザーの認証ユーザー ID（git 履歴の `userId` と同じ ID 空間） |
 
 - 昇順で並べる（先頭 = 元システムでの作成、末尾 = 移行前の最後の編集）。
 - git 移行後の編集では**追記しない**。保存はコミットとして記録される。
@@ -172,25 +172,25 @@ MDX（Markdown + `<Image />` コンポーネントのみ）。hagaki 自身は�
 
 ## カテゴリ（`categories/<slug>.json`）
 
-| フィールド | 型 | 説明 |
-| --- | --- | --- |
-| `title` | string | 表示名 |
-| `slug` | string | ファイル名と一致 |
-| `body` | string | カテゴリの説明文 |
-| `option` | object? | 記事が持つ追加 frontmatter フィールドの宣言。任意 |
+| フィールド | 型      | 説明                                              |
+| ---------- | ------- | ------------------------------------------------- |
+| `title`    | string  | 表示名                                            |
+| `slug`     | string  | ファイル名と一致                                  |
+| `body`     | string  | カテゴリの説明文                                  |
+| `option`   | object? | 記事が持つ追加 frontmatter フィールドの宣言。任意 |
 
 `option` は「このカテゴリの記事が何を追加で持つか」をキーごとに宣言する。
 値の意味は hagaki は関知せず、エディタが入力欄を描くのに必要な情報だけを持つ。
 
-| フィールド | 型 | 説明 |
-| --- | --- | --- |
-| `option.<key>.type` | `"string"` \| `"integer"` \| `"number"` \| `"boolean"` \| `"enum"` | 値の種類 |
-| `option.<key>.label` | string? | 入力欄のラベル。省略時はキー名 |
-| `option.<key>.description` | string? | 入力欄に添える説明 |
-| `option.<key>.placeholder` | string? | 未入力時のプレースホルダ |
-| `option.<key>.required` | boolean? | 記事が必ず持つ必要があるか |
-| `option.<key>.enum` | `{ id, display }[]`? | `type: "enum"` の選択肢。エディタに出す順で並べる |
-| `option.<key>.default` | string \| number \| boolean? | 新規記事の入力欄の初期値。`type: "enum"` なら選択肢の `id` |
+| フィールド                 | 型                                                                 | 説明                                                       |
+| -------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------- |
+| `option.<key>.type`        | `"string"` \| `"integer"` \| `"number"` \| `"boolean"` \| `"enum"` | 値の種類                                                   |
+| `option.<key>.label`       | string?                                                            | 入力欄のラベル。省略時はキー名                             |
+| `option.<key>.description` | string?                                                            | 入力欄に添える説明                                         |
+| `option.<key>.placeholder` | string?                                                            | 未入力時のプレースホルダ                                   |
+| `option.<key>.required`    | boolean?                                                           | 記事が必ず持つ必要があるか                                 |
+| `option.<key>.enum`        | `{ id, display }[]`?                                               | `type: "enum"` の選択肢。エディタに出す順で並べる          |
+| `option.<key>.default`     | string \| number \| boolean?                                       | 新規記事の入力欄の初期値。`type: "enum"` なら選択肢の `id` |
 
 キーは記事の frontmatter の [`option.<key>`](#カテゴリ固有の値option) に
 保存されるキーそのもの。
@@ -205,30 +205,30 @@ MDX（Markdown + `<Image />` コンポーネントのみ）。hagaki 自身は�
 
 ```json
 {
-    "title": "General",
-    "slug": "general",
-    "body": "一般的な記事",
-    "option": {
-        "x": {
-            "type": "integer",
-            "label": "X座標",
-            "description": "ワールド座標の X。地図で記事を探すのに使う",
-            "placeholder": "1000",
-            "required": true
-        },
-        "world": {
-            "type": "enum",
-            "label": "ワールド",
-            "description": "座標が属するワールド",
-            "required": true,
-            "default": "overworld",
-            "enum": [
-                { "id": "overworld", "display": "オーバーワールド" },
-                { "id": "nether", "display": "ネザー" },
-                { "id": "the_end", "display": "エンド" }
-            ]
-        }
-    }
+	"title": "General",
+	"slug": "general",
+	"body": "一般的な記事",
+	"option": {
+		"x": {
+			"type": "integer",
+			"label": "X座標",
+			"description": "ワールド座標の X。地図で記事を探すのに使う",
+			"placeholder": "1000",
+			"required": true
+		},
+		"world": {
+			"type": "enum",
+			"label": "ワールド",
+			"description": "座標が属するワールド",
+			"required": true,
+			"default": "overworld",
+			"enum": [
+				{ "id": "overworld", "display": "オーバーワールド" },
+				{ "id": "nether", "display": "ネザー" },
+				{ "id": "the_end", "display": "エンド" }
+			]
+		}
+	}
 }
 ```
 
@@ -248,22 +248,31 @@ git コミット履歴のマージは**ここで焼き込む**ので、消費側
 
 ```json
 {
-    "title": "記法サンプル",
-    "slug": "test",
-    "uuid": "0e95538c-f931-4616-8b39-88cb608c90b4",
-    "category": "general",
-    "description": "…",
-    "thumbnail": {
-        "imageId": "98e879e4-d625-4ca7-8e20-4df80ab0c285",
-        "blurhash64": "VUhLMGc4JCV4XlZzfld4dFJpdFIlZ05iTXtWQHNTb2ZWQHNv"
-    },
-    "option": { "x": 1000, "world": "overworld" },
-    "created": "2024-06-19T15:00:00.000Z",
-    "updated": "2026-08-01T00:00:00.000Z",
-    "history": [
-        { "date": "2024-06-19T15:00:00.000Z", "userId": "f8b761ec-…", "source": "imported" },
-        { "date": "2026-08-01T00:00:00.000Z", "userId": "389b1a68-…", "source": "git", "commit": "<sha>" }
-    ]
+	"title": "記法サンプル",
+	"slug": "test",
+	"uuid": "0e95538c-f931-4616-8b39-88cb608c90b4",
+	"category": "general",
+	"description": "…",
+	"thumbnail": {
+		"imageId": "98e879e4-d625-4ca7-8e20-4df80ab0c285",
+		"blurhash64": "VUhLMGc4JCV4XlZzfld4dFJpdFIlZ05iTXtWQHNTb2ZWQHNv"
+	},
+	"option": { "x": 1000, "world": "overworld" },
+	"created": "2024-06-19T15:00:00.000Z",
+	"updated": "2026-08-01T00:00:00.000Z",
+	"history": [
+		{
+			"date": "2024-06-19T15:00:00.000Z",
+			"userId": "f8b761ec-…",
+			"source": "imported"
+		},
+		{
+			"date": "2026-08-01T00:00:00.000Z",
+			"userId": "389b1a68-…",
+			"source": "git",
+			"commit": "<sha>"
+		}
+	]
 }
 ```
 

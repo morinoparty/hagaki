@@ -26,22 +26,22 @@
  */
 export { blurhashToDataUrl } from "./markdown/blurhash-data-url.js";
 export {
-    blurhashFromBase64,
-    blurhashToBase64,
+	blurhashFromBase64,
+	blurhashToBase64,
 } from "./markdown/blurhash64.js";
 export type {
-    ImageComponentAttrs,
-    MdxJsxAttributeLike,
+	ImageComponentAttrs,
+	MdxJsxAttributeLike,
 } from "./markdown/image-jsx.js";
 export {
-    extractImageComponentIds,
-    IMAGE_COMPONENT_NAME,
-    imageComponentMarkdown,
-    isImageComponentNode,
-    parseImageComponentAttributes,
+	extractImageComponentIds,
+	IMAGE_COMPONENT_NAME,
+	imageComponentMarkdown,
+	isImageComponentNode,
+	parseImageComponentAttributes,
 } from "./markdown/image-jsx.js";
 export type { ImagePathConfig } from "./markdown/images.js";
 export {
-    diffRemovedImagePaths,
-    extractRepoImagePaths,
+	diffRemovedImagePaths,
+	extractRepoImagePaths,
 } from "./markdown/images.js";
