@@ -133,65 +133,65 @@ MDXEditor はクライアント専用なので、`lazy(() => import(...))` な�
 3. **保存ボタンの制御**: `subscribe(fn)` と `hasActive()` / `hasErrors()` を使う。エディタの `onChange` で `sweepOrphanedErrors(body)` を呼ぶと、本文から消えた失敗画像の分のエラーが残らない。
 4. **保存 (ブラウザ側)**:
 
-   ```ts
-   import {
-     collectPendingImages,
-     findUncommittedImageIds,
-     PendingImageError,
-   } from "@morinoparty/hagaki/pending-images";
+    ```ts
+    import {
+      collectPendingImages,
+      findUncommittedImageIds,
+      PendingImageError,
+    } from "@morinoparty/hagaki/pending-images";
 
-   // 本文が参照していて、まだコミットされていない画像 (サムネイル等の id は自分で足す)
-   const ids = findUncommittedImageIds(body, committedBody);
-   // エンコード完了を待って { imageId, blob }[] を得る。失敗した画像や
-   // リロードで失われた画像があると PendingImageError (failedIds / missingIds) を投げる
-   const images = await collectPendingImages(ids);
+    // 本文が参照していて、まだコミットされていない画像 (サムネイル等の id は自分で足す)
+    const ids = findUncommittedImageIds(body, committedBody);
+    // エンコード完了を待って { imageId, blob }[] を得る。失敗した画像や
+    // リロードで失われた画像があると PendingImageError (failedIds / missingIds) を投げる
+    const images = await collectPendingImages(ids);
 
-   const form = new FormData();
-   form.set("body", body);
-   for (const { imageId, blob } of images) {
-     form.append("imageId", imageId);
-     form.append("image", blob);
-   }
-   await savePost(form); // Server Action / API など
+    const form = new FormData();
+    form.set("body", body);
+    for (const { imageId, blob } of images) {
+      form.append("imageId", imageId);
+      form.append("image", blob);
+    }
+    await savePost(form); // Server Action / API など
 
-   // 成功後: committedBody を更新して、次の保存で同じ画像を再送しないようにする。
-   // コミットした画像の URL は content の deploy が終わるまで 404 になるので、
-   // pending エントリは消さずに previewUrl で表示し続ける。
-   setCommittedBody(body);
-   ```
+    // 成功後: committedBody を更新して、次の保存で同じ画像を再送しないようにする。
+    // コミットした画像の URL は content の deploy が終わるまで 404 になるので、
+    // pending エントリは消さずに previewUrl で表示し続ける。
+    setCommittedBody(body);
+    ```
 
-   エディタを閉じるとき (unmount 時) に `clearAll()` を呼んで、Blob と object URL を解放する。
+    エディタを閉じるとき (unmount 時) に `clearAll()` を呼んで、Blob と object URL を解放する。
 
 5. **保存 (サーバ側)**: 受け取ったバイト列を `validateAvifUpload` (`hagaki/image`) で確かめ、本文と一緒に `posts.save` の `files` (または `commits.commitFiles`) に渡す。`CommitFile.content` は `Uint8Array` / `ArrayBuffer` / `Blob` (`FormData` の `File` もそのまま渡せる) / 文字列を受け付ける。JSON で base64 を受け取った場合は `encoding: "base64"` を付ける。
 
-   リポジトリ上のパスはサーバ側で組み立てる。クライアントが送るファイル名や id は
-   信用せず、記事の `uuid` と各 `imageId` を UUID の形か確かめてから使う
-   (`../../.github/workflows/x.yml` のような名前で記事の外へ書き込まれるのを防ぐ)。
+    リポジトリ上のパスはサーバ側で組み立てる。クライアントが送るファイル名や id は
+    信用せず、記事の `uuid` と各 `imageId` を UUID の形か確かめてから使う
+    (`../../.github/workflows/x.yml` のような名前で記事の外へ書き込まれるのを防ぐ)。
 
-   ```ts
-   import { validateAvifUpload } from "@morinoparty/hagaki/image";
+    ```ts
+    import { validateAvifUpload } from "@morinoparty/hagaki/image";
 
-   const UUID_REGEX = /^[a-f0-9-]{36}$/i;
-   if (!UUID_REGEX.test(uuid)) throw new Error("invalid post uuid");
+    const UUID_REGEX = /^[a-f0-9-]{36}$/i;
+    if (!UUID_REGEX.test(uuid)) throw new Error("invalid post uuid");
 
-   const ids = form.getAll("imageId");
-   const blobs = form.getAll("image");
-   if (ids.length !== blobs.length) throw new Error("imageId / image mismatch");
+    const ids = form.getAll("imageId");
+    const blobs = form.getAll("image");
+    if (ids.length !== blobs.length) throw new Error("imageId / image mismatch");
 
-   const files = [];
-   for (const [i, imageId] of ids.entries()) {
-     const blob = blobs[i];
-     if (typeof imageId !== "string" || !UUID_REGEX.test(imageId)) {
-       throw new Error("invalid image id");
-     }
-     if (!(blob instanceof Blob)) throw new Error("image must be a file");
-     const bytes = new Uint8Array(await blob.arrayBuffer());
-     validateAvifUpload(bytes); // 500 KB 以下の AVIF か
-     // パスは id から作る。file.name は使わない
-     files.push({ path: `content/article/${uuid}/assets/${imageId}.avif`, content: bytes });
-   }
-   await hagaki.posts.save(post, { committer, files, deletePaths });
-   ```
+    const files = [];
+    for (const [i, imageId] of ids.entries()) {
+      const blob = blobs[i];
+      if (typeof imageId !== "string" || !UUID_REGEX.test(imageId)) {
+        throw new Error("invalid image id");
+      }
+      if (!(blob instanceof Blob)) throw new Error("image must be a file");
+      const bytes = new Uint8Array(await blob.arrayBuffer());
+      validateAvifUpload(bytes); // 500 KB 以下の AVIF か
+      // パスは id から作る。file.name は使わない
+      files.push({ path: `content/article/${uuid}/assets/${imageId}.avif`, content: bytes });
+    }
+    await hagaki.posts.save(post, { committer, files, deletePaths });
+    ```
 
 画像はタブのメモリにしかないので、保存前にリロードすると失われる
 (`collectPendingImages` が `missingIds` で知らせる)。挿入し直してもらう。
