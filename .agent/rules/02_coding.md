@@ -3,10 +3,10 @@
 ## 実装手順
 
 1. **型設計**
-   - まず型(interface)を定義
+    - まず型(interface)を定義
 
 2. **純粋関数から実装**
-   - 外部依存のない関数を先に実装
+    - 外部依存のない関数を先に実装
 
 ## プラクティス
 
@@ -24,7 +24,7 @@
 - 相対 import には `.js` 拡張子を付けてください (例: `import { createHagakiClient } from "./api/client.js";`)。
 - パッケージマネージャーは pnpm を使ってください。npm / npx は使わず、`pnpm exec` / `pnpm dlx` を使ってください。
 - コードを書いた後は、`pnpm run typecheck && pnpm run check:ci && pnpm run build` を実行して、型チェック・Biome のチェック・ビルドが通ることを確認してください (CI の `.github/workflows/ci.yml` と同じ内容です)。
-  - Biome の指摘を自動で直す場合は `pnpm run check` (書き込みあり) を使ってください。
+    - Biome の指摘を自動で直す場合は `pnpm run check` (書き込みあり) を使ってください。
 
 ## 補足
 
